@@ -5,22 +5,26 @@ from pathlib import Path
 
 from flask import Flask
 
+from app.api.defasagem_risk_record_routes import risk_record_blueprint
 from app.api.domain_routes import domain_blueprint
 from app.api.errors import register_error_handlers
 from app.api.health_routes import health_blueprint
 from app.api.middleware import configure_logging, register_request_middleware
-from app.api.obesity_record_routes import record_blueprint
 from app.config import load_config
 from app.extensions import api, db
 from app.ml.model_loader import ModelArtifactError, load_model
-from app.ml.predictor import ObesityPredictor
-from app.schemas import ObesityRecordCreateSchema
+from app.ml.predictor import DefasagemRiskPredictor
+from app.schemas import DefasagemRiskRecordCreateSchema
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL_PATH = str(Path(__file__).resolve().parent.parent / "artifacts" / "hgb.joblib")
+DEFAULT_MODEL_PATH = str(
+    Path(__file__).resolve().parent.parent / "artifacts" / "modelo_risco_defasagem.joblib"
+)
 DEFAULT_MANIFEST_PATH = str(
-    Path(__file__).resolve().parent.parent / "artifacts" / "hgb.manifest.json"
+    Path(__file__).resolve().parent.parent
+    / "artifacts"
+    / "modelo_risco_defasagem.manifest.json"
 )
 
 
@@ -34,10 +38,13 @@ def create_app(config_name: str | None = None) -> Flask:
     configure_logging(app)
     db.init_app(app)
     api.init_app(app)
-    api.spec.components.schema("ObesityRecordCreate", schema=ObesityRecordCreateSchema)
+    api.spec.components.schema(
+        "DefasagemRiskRecordCreate",
+        schema=DefasagemRiskRecordCreateSchema,
+    )
     api.register_blueprint(health_blueprint)
     api.register_blueprint(domain_blueprint)
-    api.register_blueprint(record_blueprint)
+    api.register_blueprint(risk_record_blueprint)
     register_request_middleware(app)
     register_error_handlers(app)
 
@@ -60,7 +67,7 @@ def _bootstrap_ml(app: Flask) -> None:
 
     try:
         model = load_model(model_path, manifest_path)
-        predictor = ObesityPredictor(model)
+        predictor = DefasagemRiskPredictor(model)
         app.config["ML_PREDICTOR"] = predictor
         logger.info("ml_bootstrap_complete")
     except ModelArtifactError:

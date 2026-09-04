@@ -15,7 +15,8 @@ class DomainService:
 
     @staticmethod
     def _serialize(field: Any) -> dict[str, Any]:
-        convert = int if field.data_type == "integer" else str
+        converters = {"integer": int, "number": float, "string": str}
+        convert = converters.get(field.data_type, str)
         return {
             "field": field.name,
             "label": field.label,

@@ -8,8 +8,8 @@ import pytest
 from app.services import (
     DomainNotFoundError,
     DomainService,
-    ObesityRecordNotFoundError,
-    ObesityRecordService,
+    DefasagemRiskRecordNotFoundError,
+    DefasagemRiskRecordService,
 )
 
 
@@ -108,12 +108,12 @@ def test_record_service_predicts_and_commits() -> None:
     record = SimpleNamespace(id=uuid4())
     repository = RecordRepositoryStub(record)
     transaction = TransactionStub()
-    predictor = PredictorStub("Obesity_Type_I")
-    service = ObesityRecordService(repository, transaction, predictor)  # type: ignore[arg-type]
+    predictor = PredictorStub({"probabilidade": 0.75, "faixa_risco": "alto", "acao_sugerida": "Intervenção imediata"})
+    service = DefasagemRiskRecordService(repository, transaction, predictor)  # type: ignore[arg-type]
 
-    command = {"idade": 35}
+    command = {"defasagem": 1.5, "idade": 10}
     assert service.create_record(command) is record
-    assert repository.added == {"idade": 35, "obesity": "Obesity_Type_I"}
+    assert repository.added == {"defasagem": 1.5, "idade": 10, "probabilidade": 0.75, "faixa_risco": "alto", "acao_sugerida": "Intervenção imediata"}
     assert predictor.called_with is command
     assert transaction.commits == 1
     assert transaction.rollbacks == 0
@@ -123,10 +123,10 @@ def test_record_service_rolls_back_on_repository_error() -> None:
     repository = RecordRepositoryStub(error=RuntimeError("database failed"))
     transaction = TransactionStub()
     predictor = PredictorStub()
-    service = ObesityRecordService(repository, transaction, predictor)  # type: ignore[arg-type]
+    service = DefasagemRiskRecordService(repository, transaction, predictor)  # type: ignore[arg-type]
 
     with pytest.raises(RuntimeError, match="database failed"):
-        service.create_record({"idade": 35})
+        service.create_record({"defasagem": 1.5, "idade": 10})
     assert transaction.commits == 0
     assert transaction.rollbacks == 1
 
@@ -136,10 +136,10 @@ def test_record_service_rolls_back_on_predictor_error() -> None:
     repository = RecordRepositoryStub(record)
     transaction = TransactionStub()
     predictor = PredictorStub(error=RuntimeError("model failed"))
-    service = ObesityRecordService(repository, transaction, predictor)  # type: ignore[arg-type]
+    service = DefasagemRiskRecordService(repository, transaction, predictor)  # type: ignore[arg-type]
 
     with pytest.raises(RuntimeError, match="model failed"):
-        service.create_record({"idade": 35})
+        service.create_record({"defasagem": 1.5, "idade": 10})
     assert repository.added is None
     assert transaction.commits == 0
     assert transaction.rollbacks == 1
@@ -147,7 +147,7 @@ def test_record_service_rolls_back_on_predictor_error() -> None:
 
 def test_record_service_lists_all_records() -> None:
     records = [SimpleNamespace(id=index) for index in range(25)]
-    service = ObesityRecordService(  # type: ignore[arg-type]
+    service = DefasagemRiskRecordService(  # type: ignore[arg-type]
         RecordRepositoryStub(records=records), TransactionStub(), PredictorStub()
     )
 
@@ -155,7 +155,7 @@ def test_record_service_lists_all_records() -> None:
 
 
 def test_record_service_lists_empty_dataset() -> None:
-    service = ObesityRecordService(  # type: ignore[arg-type]
+    service = DefasagemRiskRecordService(  # type: ignore[arg-type]
         RecordRepositoryStub(records=[]), TransactionStub(), PredictorStub()
     )
 
@@ -166,13 +166,13 @@ def test_record_service_reads_or_raises_not_found() -> None:
     record = SimpleNamespace(id=uuid4())
     transaction = TransactionStub()
     predictor = PredictorStub()
-    service = ObesityRecordService(  # type: ignore[arg-type]
+    service = DefasagemRiskRecordService(  # type: ignore[arg-type]
         RecordRepositoryStub(record), transaction, predictor
     )
     assert service.get_record(record.id) is record
 
-    missing = ObesityRecordService(  # type: ignore[arg-type]
+    missing = DefasagemRiskRecordService(  # type: ignore[arg-type]
         RecordRepositoryStub(), transaction, predictor
     )
-    with pytest.raises(ObesityRecordNotFoundError):
+    with pytest.raises(DefasagemRiskRecordNotFoundError):
         missing.get_record(uuid4())

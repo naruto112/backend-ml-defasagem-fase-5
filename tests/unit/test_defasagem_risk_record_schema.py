@@ -7,26 +7,25 @@ import pytest
 from marshmallow import ValidationError
 
 from app.domain_catalog import DOMAIN_VALUES, INPUT_FIELDS
-from app.schemas import ObesityRecordCreateSchema
+from app.schemas import DefasagemRiskRecordCreateSchema
 
 
 @pytest.fixture
 def valid_payload() -> dict[str, Any]:
     return {
-        "idade": 35,
-        "sexo_biologico": 1,
-        "come_vegetaiis": 2,
-        "refeicoes_diariamente": 3,
-        "come_entre_refeicao": "somentimes",
-        "litro_agua": 2,
-        "frequencia_semanal_atvidade_fisica": 2,
-        "horas_dispositivo_eletronico": 1,
-        "consome_bebida_alcoolica": "no",
-        "historico_familiar": "yes",
-        "alimentos_calorico": "no",
-        "monitora_calorias": "no",
-        "fuma": "no",
-        "meio_transporte": "public_transportation",
+        "defasagem": 1.5,
+        "fase_ordem": 3,
+        "idade": 10,
+        "ano_ingresso": 2020,
+        "ida": 7.8,
+        "ieg": 8.2,
+        "iaa": 6.5,
+        "ips": 9.1,
+        "ipv": 7.3,
+        "inde": 8.0,
+        "genero": "masculino",
+        "instituicao": "publica",
+        "pedra": "quartil_1",
     }
 
 
@@ -35,22 +34,22 @@ INPUT_DOMAIN_VALUES = {k: v for k, v in DOMAIN_VALUES.items() if k != "obesity"}
 
 def _assert_error(payload: dict[str, Any], field: str, code: str) -> None:
     with pytest.raises(ValidationError) as raised:
-        ObesityRecordCreateSchema().load(payload)
+        DefasagemRiskRecordCreateSchema().load(payload)
     assert code in raised.value.messages[field]
 
 
 def test_valid_payload_round_trips(valid_payload: dict[str, Any]) -> None:
-    assert ObesityRecordCreateSchema().load(valid_payload) == valid_payload
+    assert DefasagemRiskRecordCreateSchema().load(valid_payload) == valid_payload
     assert tuple(valid_payload) == INPUT_FIELDS
 
 
-@pytest.mark.parametrize("idade", [1, 18, 35, 120])
+@pytest.mark.parametrize("idade", [6, 10, 15, 18])
 def test_ct_idade_01_accepts_boundaries(valid_payload: dict[str, Any], idade: int) -> None:
     valid_payload["idade"] = idade
-    assert ObesityRecordCreateSchema().load(valid_payload)["idade"] == idade
+    assert DefasagemRiskRecordCreateSchema().load(valid_payload)["idade"] == idade
 
 
-@pytest.mark.parametrize("idade", [0, -1, 121, 150, 2147483647])
+@pytest.mark.parametrize("idade", [0, -1, 19, 150, 2147483647])
 def test_ct_idade_02_03_rejects_out_of_range(valid_payload: dict[str, Any], idade: int) -> None:
     valid_payload["idade"] = idade
     _assert_error(valid_payload, "idade", "out_of_range")
@@ -106,6 +105,6 @@ def test_unknown_field_is_rejected(valid_payload: dict[str, Any]) -> None:
     _assert_error(valid_payload, "extra", "unknown_field")
 
 
-def test_obesity_in_payload_is_rejected(valid_payload: dict[str, Any]) -> None:
-    valid_payload["obesity"] = "Normal_Weight"
-    _assert_error(valid_payload, "obesity", "unknown_field")
+def test_risco_defasagem_in_payload_is_rejected(valid_payload: dict[str, Any]) -> None:
+    valid_payload["risco_defasagem"] = "alto"
+    _assert_error(valid_payload, "risco_defasagem", "unknown_field")

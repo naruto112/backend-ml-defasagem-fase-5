@@ -1,6 +1,6 @@
 """Database models exposed for Alembic metadata discovery."""
 
 from app.models.domain import DomainField, DomainOption
-from app.models.obesity_record import ObesityRecord
+from app.models.defasagem_risk_record import DefasagemRiskRecord
 
-__all__ = ["DomainField", "DomainOption", "ObesityRecord"]
+__all__ = ["DefasagemRiskRecord", "DomainField", "DomainOption"]

@@ -3,9 +3,9 @@ requires = ["setuptools==81.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "obesity-data-api"
+name = "defasagem-risk-api"
 version = "0.1.0"
-description = "Flask API for obesity form data"
+description = "Flask API for defasagem risk prediction using PEDE indicators"
 requires-python = ">=3.10,<3.14"
 dependencies = [
     "Flask==3.1.3",
@@ -16,9 +16,11 @@ dependencies = [
     "flask-smorest==0.47.0",
     "marshmallow==3.26.2",
     "gunicorn==23.0.0",
+    "numpy>=2.0.0",
     "scikit-learn==1.7.2",
     "pandas==2.3.0",
     "joblib==1.5.1",
+    "imbalanced-learn>=0.12.0",
 ]
 
 [project.optional-dependencies]

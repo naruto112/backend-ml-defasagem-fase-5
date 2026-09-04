@@ -12,23 +12,22 @@ import pytest
 
 from app.ml.feature_transformer import FEATURE_COLUMNS, FeatureTransformer
 from app.ml.model_loader import ModelArtifactError, _sha256, load_model, verify_artifact
-from app.ml.predictor import CLASS_MAP, ObesityPredictor, PredictionError
+from app.ml.predictor import DefasagemRiskPredictor, PredictionError
 
 SAMPLE_COMMAND = {
-    "idade": 25,
-    "sexo_biologico": 1,
-    "come_vegetaiis": 2,
-    "refeicoes_diariamente": 3,
-    "come_entre_refeicao": "somentimes",
-    "litro_agua": 2,
-    "frequencia_semanal_atvidade_fisica": 1,
-    "horas_dispositivo_eletronico": 1,
-    "consome_bebida_alcoolica": "no",
-    "historico_familiar": "yes",
-    "alimentos_calorico": "no",
-    "monitora_calorias": "no",
-    "fuma": "no",
-    "meio_transporte": "public_transportation",
+    "defasagem": 1.5,
+    "fase_ordem": 3,
+    "idade": 10,
+    "ano_ingresso": 2020,
+    "ida": 7.8,
+    "ieg": 8.2,
+    "iaa": 6.5,
+    "ips": 9.1,
+    "ipv": 7.3,
+    "inde": 8.0,
+    "genero": "masculino",
+    "instituicao": "publica",
+    "pedra": "quartil_1",
 }
 
 
@@ -40,63 +39,25 @@ class TestFeatureTransformer:
         assert list(df.columns) == FEATURE_COLUMNS
         assert len(df) == 1
 
-    def test_ordinal_mapping(self):
+    def test_genero_encoding(self):
         transformer = FeatureTransformer()
-        df = transformer.transform(SAMPLE_COMMAND)
-        assert df["CAEC"].iloc[0] == 1  # somentimes
-        assert df["CALC"].iloc[0] == 0  # no
+        masculino_cmd = {**SAMPLE_COMMAND, "genero": "masculino"}
+        feminino_cmd = {**SAMPLE_COMMAND, "genero": "feminino"}
+        assert transformer.transform(masculino_cmd)["genero_masculino"].iloc[0] == 1
+        assert transformer.transform(feminino_cmd)["genero_masculino"].iloc[0] == 0
 
-    def test_gender_encoding(self):
+    def test_instituicao_encoding(self):
         transformer = FeatureTransformer()
-        male_cmd = {**SAMPLE_COMMAND, "sexo_biologico": 1}
-        female_cmd = {**SAMPLE_COMMAND, "sexo_biologico": 2}
-        assert transformer.transform(male_cmd)["Gender_Male"].iloc[0] == 1
-        assert transformer.transform(female_cmd)["Gender_Male"].iloc[0] == 0
+        publica_cmd = {**SAMPLE_COMMAND, "instituicao": "publica"}
+        privada_cmd = {**SAMPLE_COMMAND, "instituicao": "privada"}
+        assert transformer.transform(publica_cmd)["instituicao_publica"].iloc[0] == 1
+        assert transformer.transform(privada_cmd)["instituicao_publica"].iloc[0] == 0
 
-    def test_family_history_encoding(self):
+    def test_pedra_ordinal_encoding(self):
         transformer = FeatureTransformer()
-        yes_cmd = {**SAMPLE_COMMAND, "historico_familiar": "yes"}
-        no_cmd = {**SAMPLE_COMMAND, "historico_familiar": "no"}
-        assert transformer.transform(yes_cmd)["family_history_yes"].iloc[0] == 1
-        assert transformer.transform(no_cmd)["family_history_yes"].iloc[0] == 0
-
-    def test_favc_encoding(self):
-        transformer = FeatureTransformer()
-        yes_cmd = {**SAMPLE_COMMAND, "alimentos_calorico": "yes"}
-        no_cmd = {**SAMPLE_COMMAND, "alimentos_calorico": "no"}
-        assert transformer.transform(yes_cmd)["FAVC_yes"].iloc[0] == 1
-        assert transformer.transform(no_cmd)["FAVC_yes"].iloc[0] == 0
-
-    def test_scc_encoding(self):
-        transformer = FeatureTransformer()
-        yes_cmd = {**SAMPLE_COMMAND, "monitora_calorias": "yes"}
-        no_cmd = {**SAMPLE_COMMAND, "monitora_calorias": "no"}
-        assert transformer.transform(yes_cmd)["SCC_yes"].iloc[0] == 1
-        assert transformer.transform(no_cmd)["SCC_yes"].iloc[0] == 0
-
-    def test_smoke_encoding(self):
-        transformer = FeatureTransformer()
-        yes_cmd = {**SAMPLE_COMMAND, "fuma": "yes"}
-        no_cmd = {**SAMPLE_COMMAND, "fuma": "no"}
-        assert transformer.transform(yes_cmd)["SMOKE_yes"].iloc[0] == 1
-        assert transformer.transform(no_cmd)["SMOKE_yes"].iloc[0] == 0
-
-    def test_mtrans_encoding_public_transportation(self):
-        transformer = FeatureTransformer()
-        df = transformer.transform(SAMPLE_COMMAND)
-        assert df["MTRANS_Bike"].iloc[0] == 0
-        assert df["MTRANS_Motorbike"].iloc[0] == 0
-        assert df["MTRANS_Public_Transportation"].iloc[0] == 1
-        assert df["MTRANS_Walking"].iloc[0] == 0
-
-    def test_mtrans_automobile_produces_all_zeros(self):
-        transformer = FeatureTransformer()
-        cmd = {**SAMPLE_COMMAND, "meio_transporte": "automobile"}
+        cmd = {**SAMPLE_COMMAND, "pedra": "quartil_1"}
         df = transformer.transform(cmd)
-        assert df["MTRANS_Bike"].iloc[0] == 0
-        assert df["MTRANS_Motorbike"].iloc[0] == 0
-        assert df["MTRANS_Public_Transportation"].iloc[0] == 0
-        assert df["MTRANS_Walking"].iloc[0] == 0
+        assert df["pedra"].iloc[0] == 0  # quartil_1 mapeado para 0
 
 
 class TestModelLoader:
@@ -175,40 +136,43 @@ class TestModelLoader:
         assert result is not None
 
 
-class TestObesityPredictor:
-    def _make_model(self, return_value):
+class TestDefasagemRiskPredictor:
+    def _make_model(self, proba_return_value):
         class FakeModel:
-            def predict(self, X):
-                return return_value
+            def predict_proba(self, X):
+                return proba_return_value
 
         return FakeModel()
 
-    def test_predict_returns_class_label(self):
-        model = self._make_model(np.array([1]))
-        predictor = ObesityPredictor(model)
+    def test_predict_returns_dict_with_probability_and_action(self):
+        model = self._make_model(np.array([[0.3, 0.7]]))
+        predictor = DefasagemRiskPredictor(model)
         result = predictor.predict(SAMPLE_COMMAND)
-        assert result == CLASS_MAP[1]
+        assert "probabilidade" in result
+        assert "faixa_risco" in result
+        assert "acao_sugerida" in result
+        assert isinstance(result["probabilidade"], float)
 
-    def test_predict_all_classes(self):
-        for code, label in CLASS_MAP.items():
-            model = self._make_model(np.array([code]))
-            predictor = ObesityPredictor(model)
-            assert predictor.predict(SAMPLE_COMMAND) == label
+    def test_predict_with_high_probability(self):
+        model = self._make_model(np.array([[0.2, 0.8]]))
+        predictor = DefasagemRiskPredictor(model)
+        result = predictor.predict(SAMPLE_COMMAND)
+        assert result["probabilidade"] == 0.8
 
-    def test_predict_unknown_code_raises(self):
-        model = self._make_model(np.array([99]))
-        predictor = ObesityPredictor(model)
-        with pytest.raises(PredictionError, match="Unknown prediction code"):
-            predictor.predict(SAMPLE_COMMAND)
+    def test_predict_with_low_probability(self):
+        model = self._make_model(np.array([[0.9, 0.1]]))
+        predictor = DefasagemRiskPredictor(model)
+        result = predictor.predict(SAMPLE_COMMAND)
+        assert result["probabilidade"] == 0.1
 
     def test_predict_unexpected_shape_raises(self):
-        model = self._make_model(np.array([1, 2]))
-        predictor = ObesityPredictor(model)
+        model = self._make_model(np.array([[0.5, 0.5], [0.5, 0.5]]))
+        predictor = DefasagemRiskPredictor(model)
         with pytest.raises(PredictionError, match="unexpected output shape"):
             predictor.predict(SAMPLE_COMMAND)
 
     def test_predict_none_raises(self):
         model = self._make_model(None)
-        predictor = ObesityPredictor(model)
+        predictor = DefasagemRiskPredictor(model)
         with pytest.raises(PredictionError, match="unexpected output shape"):
             predictor.predict(SAMPLE_COMMAND)

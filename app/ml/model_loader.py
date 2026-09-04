@@ -1,10 +1,11 @@
-"""Load and verify the ML model artifact."""
+"""Load and verify the PEDE defasagem-risk ML artifact."""
 
 from __future__ import annotations
 
 import hashlib
 import json
 import logging
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -48,26 +49,39 @@ def verify_artifact(model_path: Path, manifest_path: Path) -> dict[str, Any]:
     return manifest
 
 
-def load_model(model_path: Path, manifest_path: Path) -> Any:
-    """Verify and load the model artifact. Raises ModelArtifactError on failure."""
-    manifest = verify_artifact(model_path, manifest_path)
+def _validate_loaded_artifact(artifact: Any, manifest: Mapping[str, Any]) -> None:
+    if not isinstance(artifact, Mapping):
+        raise ModelArtifactError("Model artifact must be a mapping exported by the PEDE notebook")
 
-    model = joblib.load(model_path)
+    missing_keys = {"modelo", "features", "faixas_risco"} - set(artifact)
+    if missing_keys:
+        missing = ", ".join(sorted(missing_keys))
+        raise ModelArtifactError(f"Model artifact missing required keys: {missing}")
 
-    model_type = type(model).__name__
+    model = artifact["modelo"]
+    if not hasattr(model, "predict_proba"):
+        raise ModelArtifactError("Artifact model must expose predict_proba")
+
     expected_algorithm = str(manifest.get("algorithm", ""))
+    model_type = type(model).__name__
     if expected_algorithm and model_type != expected_algorithm:
         raise ModelArtifactError(
             f"Model type mismatch: expected {expected_algorithm}, got {model_type}"
         )
 
     expected_features = list(manifest.get("features", []))
-    if hasattr(model, "feature_names_in_"):
-        actual_features = list(model.feature_names_in_)
-        if actual_features != expected_features:
-            raise ModelArtifactError(
-                f"Feature mismatch: expected {expected_features}, got {actual_features}"
-            )
+    actual_features = list(artifact.get("features", []))
+    if expected_features and actual_features != expected_features:
+        raise ModelArtifactError(
+            f"Feature mismatch: expected {expected_features}, got {actual_features}"
+        )
+
+
+def load_model(model_path: Path, manifest_path: Path) -> Mapping[str, Any]:
+    """Verify and load the PEDE notebook artifact. Raises ModelArtifactError on failure."""
+    manifest = verify_artifact(model_path, manifest_path)
+    artifact = joblib.load(model_path)
+    _validate_loaded_artifact(artifact, manifest)
 
     logger.info(
         "model_loaded",
@@ -78,4 +92,4 @@ def load_model(model_path: Path, manifest_path: Path) -> Any:
         },
     )
 
-    return model
+    return artifact

@@ -8,7 +8,7 @@ from typing import Any
 from flask import Flask, Response, g, json, request
 from werkzeug.exceptions import HTTPException
 
-from app.services import DomainNotFoundError, ObesityRecordNotFoundError
+from app.services import DefasagemRiskRecordNotFoundError, DomainNotFoundError
 
 PROBLEM_BASE = "https://api.local/problems"
 
@@ -50,7 +50,7 @@ def validation_problem(messages: dict[str, Any]) -> Response:
 
 def register_error_handlers(app: Flask) -> None:
     @app.errorhandler(DomainNotFoundError)
-    @app.errorhandler(ObesityRecordNotFoundError)
+    @app.errorhandler(DefasagemRiskRecordNotFoundError)
     def handle_not_found(error: Exception) -> Response:
         return problem_response(
             404, "not-found", "Recurso nao encontrado", "O recurso solicitado nao existe."

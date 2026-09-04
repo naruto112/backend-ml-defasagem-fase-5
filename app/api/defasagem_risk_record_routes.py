@@ -1,4 +1,4 @@
-"""Obesity record HTTP routes."""
+"""PEDE defasagem-risk record HTTP routes."""
 
 from typing import Any
 from uuid import UUID
@@ -11,26 +11,28 @@ from marshmallow import ValidationError
 from app.api.errors import problem_response, validation_problem
 from app.domain_catalog import RECORD_FIELDS
 from app.extensions import db
-from app.repositories import ObesityRecordRepository
+from app.repositories import DefasagemRiskRecordRepository
 from app.schemas import (
-    ObesityRecordCreatedSchema,
-    ObesityRecordListSchema,
-    ObesityRecordReadSchema,
+    DefasagemRiskRecordCreatedSchema,
+    DefasagemRiskRecordListSchema,
+    DefasagemRiskRecordReadSchema,
 )
-from app.schemas.obesity_record_schema import ObesityRecordCreateSchema
-from app.services import ObesityRecordService
+from app.schemas.defasagem_risk_record_schema import DefasagemRiskRecordCreateSchema
+from app.services import DefasagemRiskRecordService
 
-record_blueprint = Blueprint(
-    "obesity-records",
-    "obesity-records",
-    url_prefix="/api/v1/obesity-records",
-    description="Obesity form records",
+risk_record_blueprint = Blueprint(
+    "defasagem-risk-records",
+    "defasagem-risk-records",
+    url_prefix="/api/v1/defasagem-risk-records",
+    description="PEDE defasagem-risk records",
 )
 
 
-def _service() -> ObesityRecordService:
+def _service() -> DefasagemRiskRecordService:
     predictor = current_app.config["ML_PREDICTOR"]
-    return ObesityRecordService(ObesityRecordRepository(db.session), db.session, predictor)
+    return DefasagemRiskRecordService(
+        DefasagemRiskRecordRepository(db.session), db.session, predictor
+    )
 
 
 def _isoformat(value: Any) -> str:
@@ -43,19 +45,21 @@ def _serialize_record(record: Any) -> dict[str, Any]:
     return result
 
 
-@record_blueprint.route("")
-class ObesityRecordCollection(MethodView):
-    @record_blueprint.doc(responses={"500": {"description": "Internal error"}})
-    @record_blueprint.response(200, ObesityRecordListSchema)
+@risk_record_blueprint.route("")
+class DefasagemRiskRecordCollection(MethodView):
+    @risk_record_blueprint.doc(responses={"500": {"description": "Internal error"}})
+    @risk_record_blueprint.response(200, DefasagemRiskRecordListSchema)
     def get(self) -> dict[str, Any]:
         records = _service().list_records()
         return {"data": [_serialize_record(record) for record in records]}
 
-    @record_blueprint.doc(
+    @risk_record_blueprint.doc(
         requestBody={
             "required": True,
             "content": {
-                "application/json": {"schema": {"$ref": "#/components/schemas/ObesityRecordCreate"}}
+                "application/json": {
+                    "schema": {"$ref": "#/components/schemas/DefasagemRiskRecordCreate"}
+                }
             },
         },
         responses={
@@ -66,7 +70,7 @@ class ObesityRecordCollection(MethodView):
             "500": {"description": "Internal error"},
         },
     )
-    @record_blueprint.response(201, ObesityRecordCreatedSchema)
+    @risk_record_blueprint.response(201, DefasagemRiskRecordCreatedSchema)
     def post(self) -> Any:
         if not request.is_json:
             return problem_response(
@@ -80,7 +84,7 @@ class ObesityRecordCollection(MethodView):
         if not isinstance(payload, dict):
             return validation_problem({"$": ["invalid_type"]})
         try:
-            command = ObesityRecordCreateSchema().load(payload)
+            command = DefasagemRiskRecordCreateSchema().load(payload)
         except ValidationError as error:
             messages = error.messages
             if not isinstance(messages, dict):
@@ -88,7 +92,10 @@ class ObesityRecordCollection(MethodView):
             return validation_problem(messages)
 
         record = _service().create_record(command)
-        location = url_for("obesity-records.ObesityRecordItem", record_id=record.id)
+        location = url_for(
+            "defasagem-risk-records.DefasagemRiskRecordItem",
+            record_id=record.id,
+        )
         return (
             {"id": record.id, "created_at": _isoformat(record.created_at)},
             201,
@@ -96,16 +103,16 @@ class ObesityRecordCollection(MethodView):
         )
 
 
-@record_blueprint.route("/<string:record_id>")
-class ObesityRecordItem(MethodView):
-    @record_blueprint.doc(
+@risk_record_blueprint.route("/<string:record_id>")
+class DefasagemRiskRecordItem(MethodView):
+    @risk_record_blueprint.doc(
         responses={
             "400": {"description": "Malformed UUID"},
             "404": {"description": "Record not found"},
             "500": {"description": "Internal error"},
         }
     )
-    @record_blueprint.response(200, ObesityRecordReadSchema)
+    @risk_record_blueprint.response(200, DefasagemRiskRecordReadSchema)
     def get(self, record_id: str) -> Any:
         try:
             parsed_id = UUID(record_id)

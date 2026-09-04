@@ -1,6 +1,6 @@
 """Persistence repositories."""
 
+from app.repositories.defasagem_risk_record_repository import DefasagemRiskRecordRepository
 from app.repositories.domain_repository import DomainRepository
-from app.repositories.obesity_record_repository import ObesityRecordRepository
 
-__all__ = ["DomainRepository", "ObesityRecordRepository"]
+__all__ = ["DefasagemRiskRecordRepository", "DomainRepository"]

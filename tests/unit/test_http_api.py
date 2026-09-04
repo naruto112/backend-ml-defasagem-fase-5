@@ -8,25 +8,24 @@ import pytest
 from flask import Flask
 
 from app import create_app
-from app.api import domain_routes, obesity_record_routes
+from app.api import domain_routes, defasagem_risk_record_routes
 from app.domain_catalog import RECORD_FIELDS
-from app.services import DomainNotFoundError, ObesityRecordNotFoundError
+from app.services import DomainNotFoundError, DefasagemRiskRecordNotFoundError
 
 VALID_INPUT = {
-    "idade": 35,
-    "sexo_biologico": 1,
-    "come_vegetaiis": 2,
-    "refeicoes_diariamente": 3,
-    "come_entre_refeicao": "somentimes",
-    "litro_agua": 2,
-    "frequencia_semanal_atvidade_fisica": 2,
-    "horas_dispositivo_eletronico": 1,
-    "consome_bebida_alcoolica": "no",
-    "historico_familiar": "yes",
-    "alimentos_calorico": "no",
-    "monitora_calorias": "no",
-    "fuma": "no",
-    "meio_transporte": "public_transportation",
+    "defasagem": 1.5,
+    "fase_ordem": 3,
+    "idade": 10,
+    "ano_ingresso": 2020,
+    "ida": 7.8,
+    "ieg": 8.2,
+    "iaa": 6.5,
+    "ips": 9.1,
+    "ipv": 7.3,
+    "inde": 8.0,
+    "genero": "masculino",
+    "instituicao": "publica",
+    "pedra": "quartil_1",
 }
 
 
@@ -82,7 +81,12 @@ class DomainServiceStub:
 
 class RecordServiceStub:
     def __init__(self, payload):
-        record_data = {**payload, "obesity": "Normal_Weight"}
+        record_data = {
+            **payload,
+            "probabilidade": 0.75,
+            "faixa_risco": "alto",
+            "acao_sugerida": "Intervenção imediata",
+        }
         self.record = SimpleNamespace(
             id=uuid4(), created_at=datetime(2026, 7, 3, tzinfo=timezone.utc), **record_data
         )
@@ -92,7 +96,7 @@ class RecordServiceStub:
 
     def get_record(self, record_id):
         if record_id != self.record.id:
-            raise ObesityRecordNotFoundError(str(record_id))
+            raise DefasagemRiskRecordNotFoundError(str(record_id))
         return self.record
 
     def list_records(self):
@@ -108,7 +112,7 @@ def test_liveness_openapi_and_request_id(app: Flask) -> None:
     assert live.status_code == 200
     assert live.headers["X-Request-ID"] == "request-123"
     assert openapi.status_code == 200
-    assert "/api/v1/obesity-records" in openapi.get_json()["paths"]
+    assert "/api/v1/defasagem-risk-records" in openapi.get_json()["paths"]
 
 
 def test_invalid_request_id_is_replaced(app: Flask) -> None:
@@ -141,16 +145,16 @@ def test_record_post_get_and_location(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     service = RecordServiceStub(valid_payload)
-    monkeypatch.setattr(obesity_record_routes, "_service", lambda: service)
+    monkeypatch.setattr(defasagem_risk_record_routes, "_service", lambda: service)
     client = app.test_client()
 
-    created = client.post("/api/v1/obesity-records", json=valid_payload)
+    created = client.post("/api/v1/defasagem-risk-records", json=valid_payload)
     fetched = client.get(created.headers["Location"])
 
     assert created.status_code == 201
     assert created.get_json()["id"] == str(service.record.id)
     assert fetched.status_code == 200
-    assert fetched.get_json()["idade"] == 35
+    assert fetched.get_json()["idade"] == 10
     assert set(RECORD_FIELDS).issubset(fetched.get_json())
 
 
@@ -160,9 +164,9 @@ def test_record_list_returns_all(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     service = RecordServiceStub(valid_payload)
-    monkeypatch.setattr(obesity_record_routes, "_service", lambda: service)
+    monkeypatch.setattr(defasagem_risk_record_routes, "_service", lambda: service)
 
-    response = app.test_client().get("/api/v1/obesity-records")
+    response = app.test_client().get("/api/v1/defasagem-risk-records")
 
     assert response.status_code == 200
     body = response.get_json()
@@ -183,7 +187,7 @@ def test_record_list_returns_all(
 def test_record_post_rejects_invalid_requests(
     app: Flask, kwargs: dict[str, object], status: int
 ) -> None:
-    response = app.test_client().post("/api/v1/obesity-records", **kwargs)
+    response = app.test_client().post("/api/v1/defasagem-risk-records", **kwargs)
     assert response.status_code == status
     assert response.content_type == "application/problem+json"
 
@@ -194,11 +198,11 @@ def test_record_get_rejects_invalid_and_missing_uuid(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     service = RecordServiceStub(valid_payload)
-    monkeypatch.setattr(obesity_record_routes, "_service", lambda: service)
+    monkeypatch.setattr(defasagem_risk_record_routes, "_service", lambda: service)
     client = app.test_client()
 
-    invalid = client.get("/api/v1/obesity-records/not-a-uuid")
-    missing = client.get(f"/api/v1/obesity-records/{uuid4()}")
+    invalid = client.get("/api/v1/defasagem-risk-records/not-a-uuid")
+    missing = client.get(f"/api/v1/defasagem-risk-records/{uuid4()}")
 
     assert invalid.status_code == 400
     assert missing.status_code == 404

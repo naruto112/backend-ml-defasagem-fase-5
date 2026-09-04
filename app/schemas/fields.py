@@ -20,6 +20,21 @@ class StrictInteger(fields.Integer):
         return value
 
 
+class StrictNumber(fields.Float):
+    """Accept native JSON integers/floats while rejecting booleans and coercible values."""
+
+    def _deserialize(
+        self,
+        value: Any,
+        attr: str | None,
+        data: Any,
+        **kwargs: Any,
+    ) -> float:
+        if type(value) not in (int, float):
+            raise ValidationError("invalid_type")
+        return float(value)
+
+
 class StrictString(fields.String):
     """Accept only native JSON strings without coercion."""
 
@@ -35,4 +50,4 @@ class StrictString(fields.String):
         return value
 
 
-__all__ = ["StrictInteger", "StrictString"]
+__all__ = ["StrictInteger", "StrictNumber", "StrictString"]

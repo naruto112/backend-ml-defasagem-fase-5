@@ -26,7 +26,10 @@ class DomainField(db.Model):  # type: ignore[name-defined]
     __tablename__ = "domain_field"
     __table_args__ = (
         UniqueConstraint("name", name="uq_domain_field_name"),
-        CheckConstraint("data_type IN ('integer', 'string')", name="ck_domain_field_data_type"),
+        CheckConstraint(
+            "data_type IN ('integer', 'number', 'string')",
+            name="ck_domain_field_data_type",
+        ),
     )
 
     id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)

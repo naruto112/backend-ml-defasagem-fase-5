@@ -1,4 +1,4 @@
-"""Transform the 14 API input fields into the 17-feature DataFrame expected by the model."""
+"""Build the raw PEDE feature DataFrame expected by the exported pipeline."""
 
 from __future__ import annotations
 
@@ -7,65 +7,29 @@ from typing import Any
 
 import pandas as pd
 
-ORDINAL_MAP: dict[str, int] = {
-    "no": 0,
-    "somentimes": 1,
-    "frequently": 2,
-    "always": 3,
-}
+from app.domain_catalog import INPUT_FIELDS
 
-FEATURE_COLUMNS: list[str] = [
-    "Age",
-    "FCVC",
-    "NCP",
-    "CAEC",
-    "CH2O",
-    "FAF",
-    "TUE",
-    "CALC",
-    "Gender_Male",
-    "family_history_yes",
-    "FAVC_yes",
-    "SCC_yes",
-    "SMOKE_yes",
-    "MTRANS_Bike",
-    "MTRANS_Motorbike",
-    "MTRANS_Public_Transportation",
-    "MTRANS_Walking",
-]
-
-MTRANS_FEATURES: dict[str, str] = {
-    "bike": "MTRANS_Bike",
-    "motorbike": "MTRANS_Motorbike",
-    "public_transportation": "MTRANS_Public_Transportation",
-    "walking": "MTRANS_Walking",
-}
+FEATURE_COLUMNS: list[str] = list(INPUT_FIELDS)
 
 
 class FeatureTransformer:
-    """Convert a validated API command (14 fields) into a single-row DataFrame with 17 features."""
+    """Convert a validated API command into a single-row DataFrame with 13 raw features."""
 
     def transform(self, command: Mapping[str, Any]) -> pd.DataFrame:
-        transport = str(command["meio_transporte"])
-
-        row: dict[str, int | float] = {
-            "Age": int(command["idade"]),
-            "FCVC": int(command["come_vegetaiis"]),
-            "NCP": int(command["refeicoes_diariamente"]),
-            "CAEC": ORDINAL_MAP[str(command["come_entre_refeicao"])],
-            "CH2O": int(command["litro_agua"]),
-            "FAF": int(command["frequencia_semanal_atvidade_fisica"]),
-            "TUE": int(command["horas_dispositivo_eletronico"]),
-            "CALC": ORDINAL_MAP[str(command["consome_bebida_alcoolica"])],
-            "Gender_Male": 1 if int(command["sexo_biologico"]) == 1 else 0,
-            "family_history_yes": 1 if str(command["historico_familiar"]) == "yes" else 0,
-            "FAVC_yes": 1 if str(command["alimentos_calorico"]) == "yes" else 0,
-            "SCC_yes": 1 if str(command["monitora_calorias"]) == "yes" else 0,
-            "SMOKE_yes": 1 if str(command["fuma"]) == "yes" else 0,
-            "MTRANS_Bike": 1 if transport == "bike" else 0,
-            "MTRANS_Motorbike": 1 if transport == "motorbike" else 0,
-            "MTRANS_Public_Transportation": 1 if transport == "public_transportation" else 0,
-            "MTRANS_Walking": 1 if transport == "walking" else 0,
+        row: dict[str, int | float | str] = {
+            "defasagem": float(command["defasagem"]),
+            "fase_ordem": int(command["fase_ordem"]),
+            "idade": int(command["idade"]),
+            "ano_ingresso": int(command["ano_ingresso"]),
+            "ida": float(command["ida"]),
+            "ieg": float(command["ieg"]),
+            "iaa": float(command["iaa"]),
+            "ips": float(command["ips"]),
+            "ipv": float(command["ipv"]),
+            "inde": float(command["inde"]),
+            "genero": str(command["genero"]),
+            "instituicao": str(command["instituicao"]),
+            "pedra": str(command["pedra"]),
         }
 
         return pd.DataFrame([row], columns=FEATURE_COLUMNS)

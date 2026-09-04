@@ -1,0 +1,23 @@
+{
+  "model_name": "modelo_risco_defasagem",
+  "model_type": "classification",
+  "model_version": "1.0.0",
+  "features": [
+    "defasagem",
+    "fase_ordem",
+    "idade",
+    "ano_ingresso",
+    "ida",
+    "ieg",
+    "iaa",
+    "ips",
+    "ipv",
+    "inde",
+    "genero",
+    "instituicao",
+    "pedra"
+  ],
+  "target": "risco_defasagem",
+  "created_at": "2026-09-03",
+  "description": "Modelo de classificação de risco de defasagem escolar baseado em indicadores PEDE"
+}

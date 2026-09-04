@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-from app.models import ObesityRecord
-from app.repositories import DomainRepository, ObesityRecordRepository
+from app.models import DefasagemRiskRecord
+from app.repositories import DomainRepository, DefasagemRiskRecordRepository
 
 
 class ScalarResultStub:
@@ -50,35 +50,36 @@ def test_domain_repository_executes_list_and_item_queries() -> None:
 
 def test_record_repository_adds_flushes_and_reads() -> None:
     session = SessionStub()
-    repository = ObesityRecordRepository(session)
+    repository = DefasagemRiskRecordRepository(session)
     values = {
-        "idade": 35,
-        "sexo_biologico": 1,
-        "come_vegetaiis": 2,
-        "refeicoes_diariamente": 3,
-        "come_entre_refeicao": "no",
-        "litro_agua": 2,
-        "frequencia_semanal_atvidade_fisica": 2,
-        "horas_dispositivo_eletronico": 1,
-        "consome_bebida_alcoolica": "no",
-        "historico_familiar": "yes",
-        "alimentos_calorico": "no",
-        "monitora_calorias": "no",
-        "fuma": "no",
-        "meio_transporte": "walking",
-        "obesity": "Normal_Weight",
+        "defasagem": 1.5,
+        "fase_ordem": 3,
+        "idade": 10,
+        "ano_ingresso": 2020,
+        "ida": 7.8,
+        "ieg": 8.2,
+        "iaa": 6.5,
+        "ips": 9.1,
+        "ipv": 7.3,
+        "inde": 8.0,
+        "genero": "masculino",
+        "instituicao": "publica",
+        "pedra": "quartil_1",
+        "probabilidade": 0.75,
+        "faixa_risco": "alto",
+        "acao_sugerida": "Intervenção imediata",
     }
 
     record = repository.add(values)
     session.get_value = record
 
-    assert isinstance(record, ObesityRecord)
+    assert isinstance(record, DefasagemRiskRecord)
     assert session.added is record
     assert session.flushed is True
     assert repository.get_by_id(uuid4()) is record
 
 
 def test_record_repository_lists_all() -> None:
-    repository = ObesityRecordRepository(SessionStub())
+    repository = DefasagemRiskRecordRepository(SessionStub())
 
     assert repository.list_all() == ["field"]

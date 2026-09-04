@@ -8,8 +8,8 @@ from sqlalchemy import create_engine, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.models import DomainField, DomainOption, ObesityRecord
-from app.repositories import DomainRepository, ObesityRecordRepository
+from app.models import DomainField, DomainOption, DefasagemRiskRecord
+from app.repositories import DomainRepository, DefasagemRiskRecordRepository
 from seeds.domain_options import seed
 
 DATABASE_URL = os.getenv("DATABASE_URL", "")
@@ -24,44 +24,45 @@ def test_ct_db_seed_is_idempotent_and_catalog_is_complete() -> None:
     seed(DATABASE_URL)
     engine = create_engine(DATABASE_URL)
     with Session(engine) as session:
-        assert session.scalar(select(func.count()).select_from(DomainField)) == 14
-        assert session.scalar(select(func.count()).select_from(DomainOption)) == 49
+        assert session.scalar(select(func.count()).select_from(DomainField)) == 13
+        assert session.scalar(select(func.count()).select_from(DomainOption)) == 8
         domains = DomainRepository(session).list_active_with_options()
-        assert len(domains) == 14
-        assert domains[0].name == "sexo_biologico"
-        assert domains[0].options[0].value == "1"
+        assert len(domains) == 13
+        assert domains[0].name == "genero"
+        assert domains[0].options[0].value == "masculino"
         by_name = {domain.name: domain for domain in domains}
-        assert [option.value for option in by_name["monitora_calorias"].options] == ["yes", "no"]
-        assert [option.value for option in by_name["fuma"].options] == ["yes", "no"]
+        assert [option.value for option in by_name["genero"].options] == ["masculino", "feminino"]
+        assert [option.value for option in by_name["instituicao"].options] == ["publica", "privada"]
     engine.dispose()
 
 
 def test_ct_db_record_round_trip_and_check_constraint() -> None:
     engine = create_engine(DATABASE_URL)
     valid = {
-        "idade": 35,
-        "sexo_biologico": 1,
-        "come_vegetaiis": 2,
-        "refeicoes_diariamente": 3,
-        "come_entre_refeicao": "somentimes",
-        "litro_agua": 2,
-        "frequencia_semanal_atvidade_fisica": 2,
-        "horas_dispositivo_eletronico": 1,
-        "consome_bebida_alcoolica": "no",
-        "historico_familiar": "yes",
-        "alimentos_calorico": "no",
-        "monitora_calorias": "no",
-        "fuma": "no",
-        "meio_transporte": "public_transportation",
-        "obesity": "Normal_Weight",
+        "defasagem": 1.5,
+        "fase_ordem": 3,
+        "idade": 10,
+        "ano_ingresso": 2020,
+        "ida": 7.8,
+        "ieg": 8.2,
+        "iaa": 6.5,
+        "ips": 9.1,
+        "ipv": 7.3,
+        "inde": 8.0,
+        "genero": "masculino",
+        "instituicao": "publica",
+        "pedra": "quartil_1",
+        "probabilidade": 0.75,
+        "faixa_risco": "alto",
+        "acao_sugerida": "Intervenção imediata",
     }
     with Session(engine, expire_on_commit=False) as session:
-        repository = ObesityRecordRepository(session)
+        repository = DefasagemRiskRecordRepository(session)
         record = repository.add(valid)
         session.commit()
-        assert repository.get_by_id(record.id).idade == 35  # type: ignore[union-attr]
+        assert repository.get_by_id(record.id).idade == 10  # type: ignore[union-attr]
 
-        invalid = ObesityRecord(id=uuid4(), **{**valid, "idade": 121})
+        invalid = DefasagemRiskRecord(id=uuid4(), **{**valid, "idade": 19})
         session.add(invalid)
         with pytest.raises(IntegrityError):
             session.commit()

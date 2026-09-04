@@ -19,12 +19,14 @@ def test_ct_contrato_openapi_contains_all_routes_and_input_schema(app) -> None:
         "/health/ready",
         "/api/v1/domains",
         "/api/v1/domains/{field_name}",
-        "/api/v1/obesity-records",
-        "/api/v1/obesity-records/{record_id}",
+        "/api/v1/defasagem-risk-records",
+        "/api/v1/defasagem-risk-records/{record_id}",
     }
-    create = document["components"]["schemas"]["ObesityRecordCreate"]
-    assert len(create["required"]) == 14
-    assert "obesity" not in create["required"]
-    post = document["paths"]["/api/v1/obesity-records"]["post"]
+    create = document["components"]["schemas"]["DefasagemRiskRecordCreate"]
+    assert len(create["required"]) == 13
+    assert "probabilidade" not in create["required"]
+    assert "faixa_risco" not in create["required"]
+    assert "acao_sugerida" not in create["required"]
+    post = document["paths"]["/api/v1/defasagem-risk-records"]["post"]
     assert post["requestBody"]["required"] is True
     assert {"201", "400", "413", "415", "422", "500"}.issubset(post["responses"])

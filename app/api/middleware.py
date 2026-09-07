@@ -32,6 +32,8 @@ class JsonFormatter(logging.Formatter):
             value = getattr(record, key, None)
             if value is not None:
                 payload[key] = value
+        if record.exc_info and record.exc_info[1] is not None:
+            payload["exception_message"] = str(record.exc_info[1]).splitlines()[0]
         return json.dumps(payload, ensure_ascii=True)
 
 

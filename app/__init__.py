@@ -22,9 +22,7 @@ DEFAULT_MODEL_PATH = str(
     Path(__file__).resolve().parent.parent / "artifacts" / "modelo_risco_defasagem.joblib"
 )
 DEFAULT_MANIFEST_PATH = str(
-    Path(__file__).resolve().parent.parent
-    / "artifacts"
-    / "modelo_risco_defasagem.manifest.json"
+    Path(__file__).resolve().parent.parent / "artifacts" / "modelo_risco_defasagem.manifest.json"
 )
 
 

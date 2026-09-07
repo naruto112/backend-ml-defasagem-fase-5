@@ -22,8 +22,12 @@ def upgrade() -> None:
 
     # Drop old obesity-related tables and domain fields
     op.execute("DROP TABLE IF EXISTS obesity_record CASCADE")
-    op.execute("DELETE FROM domain_option WHERE domain_field_id IN (SELECT id FROM domain_field WHERE name IN ('monitora_calorias', 'fuma', 'come_vegetaiis', 'refeicoes_diariamente', 'come_entre_refeicao', 'litro_agua', 'frequencia_semanal_atvidade_fisica', 'horas_dispositivo_eletronico', 'consome_bebida_alcoolica', 'historico_familiar', 'alimentos_calorico', 'meio_transporte'))")
-    op.execute("DELETE FROM domain_field WHERE name IN ('monitora_calorias', 'fuma', 'come_vegetaiis', 'refeicoes_diariamente', 'come_entre_refeicao', 'litro_agua', 'frequencia_semanal_atvidade_fisica', 'horas_dispositivo_eletronico', 'consome_bebida_alcoolica', 'historico_familiar', 'alimentos_calorico', 'meio_transporte')")
+    op.execute(
+        "DELETE FROM domain_option WHERE domain_field_id IN (SELECT id FROM domain_field WHERE name IN ('monitora_calorias', 'fuma', 'come_vegetaiis', 'refeicoes_diariamente', 'come_entre_refeicao', 'litro_agua', 'frequencia_semanal_atvidade_fisica', 'horas_dispositivo_eletronico', 'consome_bebida_alcoolica', 'historico_familiar', 'alimentos_calorico', 'meio_transporte'))"
+    )
+    op.execute(
+        "DELETE FROM domain_field WHERE name IN ('monitora_calorias', 'fuma', 'come_vegetaiis', 'refeicoes_diariamente', 'come_entre_refeicao', 'litro_agua', 'frequencia_semanal_atvidade_fisica', 'horas_dispositivo_eletronico', 'consome_bebida_alcoolica', 'historico_familiar', 'alimentos_calorico', 'meio_transporte')"
+    )
 
     # Create defasagem_risk_record table
     op.create_table(
@@ -76,7 +80,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index("ix_defasagem_risk_record_created_at", table_name="defasagem_risk_record")
     op.drop_table("defasagem_risk_record")
-    
+
     # Revert domain_field data_type constraint
     op.execute("ALTER TABLE domain_field DROP CONSTRAINT IF EXISTS ck_domain_field_data_type")
     op.execute(

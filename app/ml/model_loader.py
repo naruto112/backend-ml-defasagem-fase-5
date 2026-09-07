@@ -80,7 +80,7 @@ def _validate_loaded_artifact(artifact: Any, manifest: Mapping[str, Any]) -> Non
 def load_model(model_path: Path, manifest_path: Path) -> Mapping[str, Any]:
     """Verify and load the PEDE notebook artifact. Raises ModelArtifactError on failure."""
     manifest = verify_artifact(model_path, manifest_path)
-    artifact = joblib.load(model_path)
+    artifact: Mapping[str, Any] = joblib.load(model_path)
     _validate_loaded_artifact(artifact, manifest)
 
     logger.info(

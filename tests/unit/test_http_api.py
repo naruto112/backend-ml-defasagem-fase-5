@@ -8,9 +8,9 @@ import pytest
 from flask import Flask
 
 from app import create_app
-from app.api import domain_routes, defasagem_risk_record_routes
+from app.api import defasagem_risk_record_routes, domain_routes
 from app.domain_catalog import RECORD_FIELDS
-from app.services import DomainNotFoundError, DefasagemRiskRecordNotFoundError
+from app.services import DefasagemRiskRecordNotFoundError, DomainNotFoundError
 
 VALID_INPUT = {
     "defasagem": 1.5,

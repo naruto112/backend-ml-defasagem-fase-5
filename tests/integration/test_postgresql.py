@@ -8,8 +8,9 @@ from sqlalchemy import create_engine, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.models import DomainField, DomainOption, DefasagemRiskRecord
-from app.repositories import DomainRepository, DefasagemRiskRecordRepository
+from app.domain_catalog import INPUT_FIELDS
+from app.models import DefasagemRiskRecord, DomainField, DomainOption
+from app.repositories import DefasagemRiskRecordRepository, DomainRepository
 from seeds.domain_options import seed
 
 DATABASE_URL = os.getenv("DATABASE_URL", "")
@@ -25,11 +26,10 @@ def test_ct_db_seed_is_idempotent_and_catalog_is_complete() -> None:
     engine = create_engine(DATABASE_URL)
     with Session(engine) as session:
         assert session.scalar(select(func.count()).select_from(DomainField)) == 13
-        assert session.scalar(select(func.count()).select_from(DomainOption)) == 8
+        assert session.scalar(select(func.count()).select_from(DomainOption)) == 17
         domains = DomainRepository(session).list_active_with_options()
         assert len(domains) == 13
-        assert domains[0].name == "genero"
-        assert domains[0].options[0].value == "Feminino"
+        assert [domain.name for domain in domains] == list(INPUT_FIELDS)
         by_name = {domain.name: domain for domain in domains}
         assert [option.value for option in by_name["genero"].options] == ["Feminino", "Masculino"]
         assert [option.value for option in by_name["instituicao"].options] == ["Pública", "Privada"]
@@ -53,8 +53,8 @@ def test_ct_db_record_round_trip_and_check_constraint() -> None:
         "instituicao": "Pública",
         "pedra": "Quartzo",
         "probabilidade": 0.75,
-        "faixa_risco": "alto",
-        "acao_sugerida": "Intervenção imediata",
+        "faixa_risco": "Alto",
+        "acao_sugerida": "Prioridade de acompanhamento",
     }
     with Session(engine, expire_on_commit=False) as session:
         repository = DefasagemRiskRecordRepository(session)

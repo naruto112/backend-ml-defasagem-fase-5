@@ -23,9 +23,9 @@ def valid_payload() -> dict[str, Any]:
         "ips": 9.1,
         "ipv": 7.3,
         "inde": 8.0,
-        "genero": "masculino",
-        "instituicao": "publica",
-        "pedra": "quartil_1",
+        "genero": "Feminino",
+        "instituicao": "Pública",
+        "pedra": "Quartzo",
     }
 
 
@@ -83,7 +83,7 @@ def test_each_domain_value_is_accepted(
     for value in values:
         payload = deepcopy(valid_payload)
         payload[field] = value
-        assert ObesityRecordCreateSchema().load(payload)[field] == value
+        assert DefasagemRiskRecordCreateSchema().load(payload)[field] == value
 
 
 @pytest.mark.parametrize("field", INPUT_DOMAIN_VALUES)

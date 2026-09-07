@@ -29,10 +29,10 @@ def test_ct_db_seed_is_idempotent_and_catalog_is_complete() -> None:
         domains = DomainRepository(session).list_active_with_options()
         assert len(domains) == 13
         assert domains[0].name == "genero"
-        assert domains[0].options[0].value == "masculino"
+        assert domains[0].options[0].value == "Feminino"
         by_name = {domain.name: domain for domain in domains}
-        assert [option.value for option in by_name["genero"].options] == ["masculino", "feminino"]
-        assert [option.value for option in by_name["instituicao"].options] == ["publica", "privada"]
+        assert [option.value for option in by_name["genero"].options] == ["Feminino", "Masculino"]
+        assert [option.value for option in by_name["instituicao"].options] == ["Pública", "Privada"]
     engine.dispose()
 
 
@@ -49,9 +49,9 @@ def test_ct_db_record_round_trip_and_check_constraint() -> None:
         "ips": 9.1,
         "ipv": 7.3,
         "inde": 8.0,
-        "genero": "masculino",
-        "instituicao": "publica",
-        "pedra": "quartil_1",
+        "genero": "Feminino",
+        "instituicao": "Pública",
+        "pedra": "Quartzo",
         "probabilidade": 0.75,
         "faixa_risco": "alto",
         "acao_sugerida": "Intervenção imediata",

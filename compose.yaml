@@ -4,8 +4,8 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-obesity}
-      POSTGRES_USER: ${POSTGRES_USER:-obesity}
+      POSTGRES_DB: ${POSTGRES_DB:-defasagem}
+      POSTGRES_USER: ${POSTGRES_USER:-defasagem}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql/data
@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
 
   migrate:
-    build: .
+    image: defasagem-risk-api:latest
     environment: &app-env
       APP_ENV: ${APP_ENV:-development}
       DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL}
@@ -29,7 +29,7 @@ services:
     restart: "no"
 
   api:
-    build: .
+    image: defasagem-risk-api:latest
     environment: *app-env
     ports:
       - "127.0.0.1:${API_PORT:-8000}:8000"

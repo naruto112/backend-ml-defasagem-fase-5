@@ -15,7 +15,7 @@ from app.extensions import db
 class DefasagemRiskRecord(db.Model):  # type: ignore[name-defined]
     __tablename__ = "defasagem_risk_record"
     __table_args__ = (
-        CheckConstraint("defasagem >= 0", name="ck_defasagem_risk_defasagem"),
+        CheckConstraint("defasagem >= -10", name="ck_defasagem_risk_defasagem"),
         CheckConstraint("fase_ordem BETWEEN 1 AND 9", name="ck_defasagem_risk_fase_ordem"),
         CheckConstraint("idade BETWEEN 6 AND 18", name="ck_defasagem_risk_idade"),
         CheckConstraint("ano_ingresso >= 2010", name="ck_defasagem_risk_ano"),
@@ -26,15 +26,15 @@ class DefasagemRiskRecord(db.Model):  # type: ignore[name-defined]
         CheckConstraint("ipv BETWEEN 0 AND 10", name="ck_defasagem_risk_ipv"),
         CheckConstraint("inde BETWEEN 0 AND 10", name="ck_defasagem_risk_inde"),
         CheckConstraint(
-            "genero IN ('masculino', 'feminino')",
+            "genero IN ('Feminino', 'Masculino')",
             name="ck_defasagem_risk_genero",
         ),
         CheckConstraint(
-            "instituicao IN ('publica', 'privada')",
+            "instituicao IN ('Pública', 'Privada')",
             name="ck_defasagem_risk_instituicao",
         ),
         CheckConstraint(
-            "pedra IN ('quartil_1', 'quartil_2', 'quartil_3', 'quartil_4')",
+            "pedra IN ('Quartzo', 'Ágata', 'Ametista', 'Topázio')",
             name="ck_defasagem_risk_pedra",
         ),
         CheckConstraint(

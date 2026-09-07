@@ -1,79 +1,71 @@
-# Obesity Data API
+# Defasagem Risk API
 
-API Flask/PostgreSQL para consultar 14 dominios e cadastrar registros de
-obesidade com **predicao automatica via Machine Learning** (HistGradientBoostingClassifier).
+API Flask/PostgreSQL para consultar 13 dominios PEDE e cadastrar registros de
+risco de defasagem escolar com **predicao automatica via Machine Learning**.
 
-O cliente envia os 14 campos do formulario e a API prediz a classe de obesidade
-server-side antes de persistir o registro (15 campos no banco).
+O cliente envia os 13 campos PEDE e a API prediz probabilidade, faixa de risco e
+acao sugerida server-side antes de persistir o registro (16 campos no banco).
 
 ## Arquitetura ML
 
 ```
-POST /api/v1/obesity-records (14 campos)
+POST /api/v1/defasagem-risk-records (13 campos)
   │
-  ├─ Validacao (schema 14 inputs)
-  ├─ FeatureTransformer (14 inputs → 17 features)
-  ├─ ObesityPredictor (model.predict → classe)
-  └─ Persistencia (14 inputs + obesity predito)
+  ├─ Validacao (schema 13 inputs PEDE)
+  ├─ FeatureTransformer (13 inputs → 13 features)
+  ├─ DefasagemRiskPredictor (model.predict_proba → probabilidade)
+  └─ Persistencia (13 inputs + probabilidade, faixa_risco, acao_sugerida)
 ```
 
 ### Pipeline de inferencia (`app/ml/`)
 
 | Modulo | Responsabilidade |
 |--------|-----------------|
-| `feature_transformer.py` | Transforma os 14 campos da API em DataFrame com 17 features (ordinal encoding, one-hot, MTRANS dummies) |
+| `feature_transformer.py` | Transforma os 13 campos PEDE em DataFrame com 13 features |
 | `model_loader.py` | Verifica integridade do artefato (SHA-256 + tamanho) e carrega o modelo |
-| `predictor.py` | Orquestra transformacao + predicao + mapeamento codigo→classe |
+| `predictor.py` | Orquestra transformacao + predicao + classificacao em faixas de risco |
 
 ### Artefato do modelo
 
-- Arquivo: `artifacts/hgb.joblib` (HistGradientBoostingClassifier)
-- Manifesto: `artifacts/hgb.manifest.json` (SHA-256, features, classes)
-- Verificacao: `python scripts/verify_model_artifact.py artifacts/hgb.manifest.json`
-- Gerar/atualizar manifesto: `python scripts/generate_model_manifest.py artifacts/hgb.joblib`
+- Arquivo: `artifacts/modelo_risco_defasagem.joblib`
+- Manifesto: `artifacts/modelo_risco_defasagem.manifest.json` (SHA-256, features, faixas de risco)
+- Verificacao: `python scripts/verify_model_artifact.py artifacts/modelo_risco_defasagem.manifest.json`
+- Gerar/atualizar manifesto: `python scripts/generate_model_manifest.py artifacts/modelo_risco_defasagem.joblib`
   (extrai SHA-256, tamanho, algoritmo, features e versao do sklearn do modelo;
   reaproveita `version`, `class_map` e `provenance` do manifesto existente. Use
   `-` como destino para imprimir sem gravar. Sempre revise os campos marcados
   com `TODO` antes de commitar.)
 
-> Trocou o `.joblib`? O `hgb.manifest.json` fixa o hash/tamanho do artefato,
+> Trocou o `.joblib`? O `modelo_risco_defasagem.manifest.json` fixa o hash/tamanho do artefato,
 > entao a API falha com `SHA-256 mismatch` ate o manifesto ser regenerado.
 > Rode o gerador acima e confira se as `features` do novo modelo batem com as
 > produzidas por `feature_transformer.py`.
 
-### Classes preditas
+### Faixas de risco
 
-| Codigo | Classe |
-|--------|--------|
-| 0 | Insufficient_Weight |
-| 1 | Normal_Weight |
-| 2 | Obesity_Type_I |
-| 3 | Obesity_Type_II |
-| 4 | Obesity_Type_III |
-| 5 | Overweight_Level_I |
-| 6 | Overweight_Level_II |
+| Faixa | Probabilidade | Acao sugerida |
+|-------|--------------|--------------|
+| Baixo | 0.00 - 0.25 | Sem sinal de alerta |
+| Medio | 0.25 - 0.50 | Monitorar no proximo ciclo |
+| Alto | 0.50 - 1.00 | Prioridade de acompanhamento |
 
-### Transformacao de features (14 → 17)
+### Campos PEDE (13 indicadores)
 
-| Feature | Campo API | Transformacao |
-|---------|-----------|---------------|
-| Age | idade | direto |
-| FCVC | come_vegetaiis | direto |
-| NCP | refeicoes_diariamente | direto |
-| CAEC | come_entre_refeicao | ordinal (no=0, somentimes=1, frequently=2, always=3) |
-| CH2O | litro_agua | direto |
-| FAF | frequencia_semanal_atvidade_fisica | direto |
-| TUE | horas_dispositivo_eletronico | direto |
-| CALC | consome_bebida_alcoolica | ordinal |
-| Gender_Male | sexo_biologico | 1 se masculino(1), 0 se feminino(2) |
-| family_history_yes | historico_familiar | 1 se "yes", 0 se "no" |
-| FAVC_yes | alimentos_calorico | 1 se "yes", 0 se "no" |
-| SCC_yes | monitora_calorias | 1 se "yes", 0 se "no" |
-| SMOKE_yes | fuma | 1 se "yes", 0 se "no" |
-| MTRANS_Bike | meio_transporte | one-hot (automobile e referencia = zeros) |
-| MTRANS_Motorbike | meio_transporte | one-hot |
-| MTRANS_Public_Transportation | meio_transporte | one-hot |
-| MTRANS_Walking | meio_transporte | one-hot |
+| Campo | Tipo | Descricao |
+|-------|------|----------|
+| defasagem | numerico | Defasagem escolar (anos) |
+| fase_ordem | inteiro | Fase de escolaridade (1-9) |
+| idade | inteiro | Idade do aluno (6-18 anos) |
+| ano_ingresso | inteiro | Ano de ingresso na escola |
+| ida | numerico | Indicador de Desempenho Academico (0-10) |
+| ieg | numerico | Indicador de Eficiencia Escolar (0-10) |
+| iaa | numerico | Indicador de Aproveitamento Anual (0-10) |
+| ips | numerico | Indicador de Progresso Escolar (0-10) |
+| ipv | numerico | Indicador de Proficiencia em Portugues (0-10) |
+| inde | numerico | Indicador de Desempenho Escolar (0-10) |
+| genero | texto | Gênero (masculino/feminino) |
+| instituicao | texto | Tipo de instituicao (publica/privada) |
+| pedra | texto | Pedra (quartil_1/quartil_2/quartil_3/quartil_4) |
 
 ## Executar com Docker
 
@@ -91,8 +83,8 @@ OpenAPI em `/api/openapi.json`. O PostgreSQL nao publica porta no host.
 
 | Variavel | Default | Descricao |
 |----------|---------|-----------|
-| `ML_MODEL_PATH` | `artifacts/hgb.joblib` | Caminho do modelo serializado |
-| `ML_MANIFEST_PATH` | `artifacts/hgb.manifest.json` | Caminho do manifesto de verificacao |
+| `ML_MODEL_PATH` | `artifacts/modelo_risco_defasagem.joblib` | Caminho do modelo serializado |
+| `ML_MANIFEST_PATH` | `artifacts/modelo_risco_defasagem.manifest.json` | Caminho do manifesto de verificacao |
 
 ## Desenvolvimento
 
@@ -128,46 +120,58 @@ psql "$env:DATABASE_URL" -f migrations/versions/script.sql
 
 - `GET /health/live` e `GET /health/ready`
 - `GET /api/v1/domains` e `GET /api/v1/domains/{field_name}`
-- `POST /api/v1/obesity-records` — aceita 14 campos, retorna 15 (com `obesity` predito)
-- `GET /api/v1/obesity-records` — lista todos os registros
-- `GET /api/v1/obesity-records/{id}`
+- `POST /api/v1/defasagem-risk-records` — aceita 13 campos PEDE, retorna 16 (com probabilidade, faixa_risco, acao_sugerida)
+- `GET /api/v1/defasagem-risk-records` — lista todos os registros
+- `GET /api/v1/defasagem-risk-records/{id}`
 
-### Contrato POST /api/v1/obesity-records
+### Contrato POST /api/v1/defasagem-risk-records
 
-**Request (14 campos):**
+**Request (13 campos PEDE):**
 
 ```json
 {
-  "idade": 25,
-  "sexo_biologico": 1,
-  "come_vegetaiis": 2,
-  "refeicoes_diariamente": 3,
-  "come_entre_refeicao": "somentimes",
-  "litro_agua": 2,
-  "frequencia_semanal_atvidade_fisica": 1,
-  "horas_dispositivo_eletronico": 1,
-  "consome_bebida_alcoolica": "no",
-  "historico_familiar": "yes",
-  "alimentos_calorico": "no",
-  "monitora_calorias": "no",
-  "fuma": "no",
-  "meio_transporte": "public_transportation"
+  "defasagem": 1.5,
+  "fase_ordem": 3,
+  "idade": 10,
+  "ano_ingresso": 2020,
+  "ida": 7.8,
+  "ieg": 8.2,
+  "iaa": 6.5,
+  "ips": 9.1,
+  "ipv": 7.3,
+  "inde": 8.0,
+  "genero": "masculino",
+  "instituicao": "publica",
+  "pedra": "quartil_1"
 }
 ```
 
-**Response (15 campos — obesity predito pelo modelo):**
+**Response (16 campos — probabilidade, faixa_risco, acao_sugerida calculados pelo modelo):**
 
 ```json
 {
   "id": "uuid",
-  "created_at": "2026-07-04T18:00:00Z",
-  "idade": 25,
-  "obesity": "Normal_Weight",
-  "..."
+  "created_at": "2026-09-04T18:00:00Z",
+  "defasagem": 1.5,
+  "fase_ordem": 3,
+  "idade": 10,
+  "ano_ingresso": 2020,
+  "ida": 7.8,
+  "ieg": 8.2,
+  "iaa": 6.5,
+  "ips": 9.1,
+  "ipv": 7.3,
+  "inde": 8.0,
+  "genero": "masculino",
+  "instituicao": "publica",
+  "pedra": "quartil_1",
+  "probabilidade": 0.35,
+  "faixa_risco": "Medio",
+  "acao_sugerida": "Monitorar no proximo ciclo"
 }
 ```
 
-> Se o campo `obesity` for enviado no payload, a API retorna `422 unknown_field`.
+> Se o campo `probabilidade`, `faixa_risco` ou `acao_sugerida` for enviado no payload, a API retorna `422 unknown_field`.
 
 Erros usam `application/problem+json`. Toda resposta inclui `X-Request-ID`.
 Payloads e campos de saude nao sao registrados nos logs.

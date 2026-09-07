@@ -19,5 +19,7 @@
   ],
   "target": "risco_defasagem",
   "created_at": "2026-09-03",
-  "description": "Modelo de classificação de risco de defasagem escolar baseado em indicadores PEDE"
+  "description": "Modelo de classificação de risco de defasagem escolar baseado em indicadores PEDE",
+  "sha256": "b2daeece3259c22002832922f9026b3029e7bba8f58586c326c2620cd5f0382c",
+  "size_bytes": 2519297
 }

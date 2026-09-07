@@ -25,9 +25,9 @@ SAMPLE_COMMAND = {
     "ips": 9.1,
     "ipv": 7.3,
     "inde": 8.0,
-    "genero": "masculino",
-    "instituicao": "publica",
-    "pedra": "quartil_1",
+    "genero": "Feminino",
+    "instituicao": "Pública",
+    "pedra": "Quartzo",
 }
 
 

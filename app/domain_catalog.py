@@ -35,9 +35,9 @@ RISK_BANDS: Final[tuple[str, ...]] = ("Baixo", "M\u00e9dio", "Alto")
 
 DOMAIN_VALUES = MappingProxyType(
     {
-        "genero": ("masculino", "feminino"),
-        "instituicao": ("publica", "privada"),
-        "pedra": ("quartil_1", "quartil_2", "quartil_3", "quartil_4"),
+        "genero": ("Feminino", "Masculino"),
+        "instituicao": ("Pública", "Privada"),
+        "pedra": ("Quartzo", "Ágata", "Ametista", "Topázio"),
         "faixa_risco": RISK_BANDS,
     }
 )

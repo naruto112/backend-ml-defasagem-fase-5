@@ -17,7 +17,7 @@ dependencies = [
     "marshmallow==3.26.2",
     "gunicorn==23.0.0",
     "numpy>=2.0.0",
-    "scikit-learn==1.7.2",
+    "scikit-learn==1.8.0",
     "pandas==2.3.0",
     "joblib==1.5.1",
     "imbalanced-learn>=0.12.0",

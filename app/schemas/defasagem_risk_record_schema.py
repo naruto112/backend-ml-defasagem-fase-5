@@ -40,7 +40,7 @@ class DefasagemRiskRecordCreateSchema(Schema):
     defasagem = StrictNumber(
         required=True,
         allow_none=False,
-        validate=validate.Range(min=0, max=20, error="out_of_range"),
+        validate=validate.Range(min=-10, max=20, error="out_of_range"),
         error_messages=COMMON_ERRORS,
     )
     fase_ordem = StrictInteger(

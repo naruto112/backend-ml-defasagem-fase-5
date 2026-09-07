@@ -20,8 +20,10 @@ def upgrade() -> None:
         "CHECK (data_type IN ('integer', 'string', 'number'))"
     )
 
-    # Drop old obesity-related tables if they exist (optional cleanup)
+    # Drop old obesity-related tables and domain fields
     op.execute("DROP TABLE IF EXISTS obesity_record CASCADE")
+    op.execute("DELETE FROM domain_option WHERE domain_field_id IN (SELECT id FROM domain_field WHERE name IN ('monitora_calorias', 'fuma', 'come_vegetaiis', 'refeicoes_diariamente', 'come_entre_refeicao', 'litro_agua', 'frequencia_semanal_atvidade_fisica', 'horas_dispositivo_eletronico', 'consome_bebida_alcoolica', 'historico_familiar', 'alimentos_calorico', 'meio_transporte'))")
+    op.execute("DELETE FROM domain_field WHERE name IN ('monitora_calorias', 'fuma', 'come_vegetaiis', 'refeicoes_diariamente', 'come_entre_refeicao', 'litro_agua', 'frequencia_semanal_atvidade_fisica', 'horas_dispositivo_eletronico', 'consome_bebida_alcoolica', 'historico_familiar', 'alimentos_calorico', 'meio_transporte')")
 
     # Create defasagem_risk_record table
     op.create_table(
@@ -48,23 +50,23 @@ def upgrade() -> None:
         ),
         sa.CheckConstraint("idade BETWEEN 6 AND 18", name="ck_defasagem_record_idade"),
         sa.CheckConstraint(
-            "genero IN ('masculino', 'feminino')", name="ck_defasagem_record_genero"
+            "genero IN ('Feminino', 'Masculino')", name="ck_defasagem_record_genero"
         ),
         sa.CheckConstraint(
-            "instituicao IN ('publica', 'privada')", name="ck_defasagem_record_instituicao"
+            "instituicao IN ('Pública', 'Privada')", name="ck_defasagem_record_instituicao"
         ),
         sa.CheckConstraint(
-            "pedra IN ('quartil_1', 'quartil_2', 'quartil_3', 'quartil_4')",
+            "pedra IN ('Quartzo', 'Ágata', 'Ametista', 'Topázio')",
             name="ck_defasagem_record_pedra",
         ),
-        sa.CheckConstraint("defasagem >= 0", name="ck_defasagem_record_defasagem"),
+        sa.CheckConstraint("defasagem >= -10", name="ck_defasagem_record_defasagem"),
         sa.CheckConstraint("fase_ordem BETWEEN 1 AND 9", name="ck_defasagem_record_fase_ordem"),
         sa.CheckConstraint("ano_ingresso >= 2010", name="ck_defasagem_record_ano_ingresso"),
         sa.CheckConstraint(
             "probabilidade BETWEEN 0 AND 1", name="ck_defasagem_record_probabilidade"
         ),
         sa.CheckConstraint(
-            "faixa_risco IN ('baixo', 'medio', 'alto')", name="ck_defasagem_record_faixa_risco"
+            "faixa_risco IN ('Baixo', 'Médio', 'Alto')", name="ck_defasagem_record_faixa_risco"
         ),
         sa.PrimaryKeyConstraint("id", name="pk_defasagem_risk_record"),
     )

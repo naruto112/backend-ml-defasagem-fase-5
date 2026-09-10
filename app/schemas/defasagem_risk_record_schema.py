@@ -30,35 +30,35 @@ def _string_domain(field_name: str) -> StrictString:
 
 
 class DefasagemRiskRecordCreateSchema(Schema):
-    """Validate the exact 13-field PEDE risk input contract."""
+    """Validate the exact 12-field PEDE risk input contract."""
 
     error_messages = {"unknown": "unknown_field"}
 
     class Meta:
         unknown = RAISE
 
-    defasagem = StrictNumber(
+    defasagem = StrictInteger(
         required=True,
         allow_none=False,
-        validate=validate.Range(min=-10, max=20, error="out_of_range"),
+        validate=validate.Range(min=-4, max=2, error="out_of_range"),
         error_messages=COMMON_ERRORS,
     )
     fase_ordem = StrictInteger(
         required=True,
         allow_none=False,
-        validate=validate.Range(min=1, max=9, error="out_of_range"),
+        validate=validate.Range(min=0, max=8, error="out_of_range"),
         error_messages=COMMON_ERRORS,
     )
     idade = StrictInteger(
         required=True,
         allow_none=False,
-        validate=validate.Range(min=6, max=18, error="out_of_range"),
+        validate=validate.Range(min=7, max=26, error="out_of_range"),
         error_messages=COMMON_ERRORS,
     )
     ano_ingresso = StrictInteger(
         required=True,
         allow_none=False,
-        validate=validate.Range(min=2010, max=2100, error="out_of_range"),
+        validate=validate.Range(min=2016, max=2023, error="out_of_range"),
         error_messages=COMMON_ERRORS,
     )
     ida = _score_field()
@@ -69,7 +69,6 @@ class DefasagemRiskRecordCreateSchema(Schema):
     inde = _score_field()
     genero = _string_domain("genero")
     instituicao = _string_domain("instituicao")
-    pedra = _string_domain("pedra")
 
 
 class DefasagemRiskRecordCreatedSchema(Schema):
@@ -78,12 +77,12 @@ class DefasagemRiskRecordCreatedSchema(Schema):
 
 
 class DefasagemRiskRecordReadSchema(Schema):
-    """Read schema with 13 inputs plus server-derived risk fields."""
+    """Read schema with 12 inputs plus server-derived risk fields."""
 
     id = fields.UUID(required=True)
     created_at = fields.String(required=True)
 
-    defasagem = StrictNumber(required=True)
+    defasagem = StrictInteger(required=True)
     fase_ordem = StrictInteger(required=True)
     idade = StrictInteger(required=True)
     ano_ingresso = StrictInteger(required=True)
@@ -95,7 +94,6 @@ class DefasagemRiskRecordReadSchema(Schema):
     inde = StrictNumber(required=True)
     genero = StrictString(required=True)
     instituicao = StrictString(required=True)
-    pedra = StrictString(required=True)
     probabilidade = StrictNumber(
         required=True,
         validate=validate.Range(min=0, max=1, error="out_of_range"),

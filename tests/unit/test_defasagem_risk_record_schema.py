@@ -13,10 +13,10 @@ from app.schemas import DefasagemRiskRecordCreateSchema
 @pytest.fixture
 def valid_payload() -> dict[str, Any]:
     return {
-        "defasagem": 1.5,
-        "fase_ordem": 3,
-        "idade": 10,
-        "ano_ingresso": 2020,
+        "defasagem": -1,
+        "fase_ordem": 2,
+        "idade": 12,
+        "ano_ingresso": 2022,
         "ida": 7.8,
         "ieg": 8.2,
         "iaa": 6.5,
@@ -25,7 +25,6 @@ def valid_payload() -> dict[str, Any]:
         "inde": 8.0,
         "genero": "Feminino",
         "instituicao": "Pública",
-        "pedra": "Quartzo",
     }
 
 
@@ -43,13 +42,13 @@ def test_valid_payload_round_trips(valid_payload: dict[str, Any]) -> None:
     assert tuple(valid_payload) == INPUT_FIELDS
 
 
-@pytest.mark.parametrize("idade", [6, 10, 15, 18])
+@pytest.mark.parametrize("idade", [7, 12, 20, 26])
 def test_ct_idade_01_accepts_boundaries(valid_payload: dict[str, Any], idade: int) -> None:
     valid_payload["idade"] = idade
     assert DefasagemRiskRecordCreateSchema().load(valid_payload)["idade"] == idade
 
 
-@pytest.mark.parametrize("idade", [0, -1, 19, 150, 2147483647])
+@pytest.mark.parametrize("idade", [0, 6, 27, 150, 2147483647])
 def test_ct_idade_02_03_rejects_out_of_range(valid_payload: dict[str, Any], idade: int) -> None:
     valid_payload["idade"] = idade
     _assert_error(valid_payload, "idade", "out_of_range")
@@ -59,6 +58,18 @@ def test_ct_idade_02_03_rejects_out_of_range(valid_payload: dict[str, Any], idad
 def test_ct_idade_04_rejects_non_integer_types(valid_payload: dict[str, Any], value: Any) -> None:
     valid_payload["idade"] = value
     _assert_error(valid_payload, "idade", "invalid_type")
+
+
+@pytest.mark.parametrize("defasagem", [-4, -1, 0, 2])
+def test_ct_defasagem_accepts_boundaries(valid_payload: dict[str, Any], defasagem: int) -> None:
+    valid_payload["defasagem"] = defasagem
+    assert DefasagemRiskRecordCreateSchema().load(valid_payload)["defasagem"] == defasagem
+
+
+@pytest.mark.parametrize("defasagem", [-5, 3, 20, 1.5, True, {}, []])
+def test_ct_defasagem_rejects_out_of_range_or_wrong_type(valid_payload: dict[str, Any], defasagem: Any) -> None:
+    valid_payload["defasagem"] = defasagem
+    _assert_error(valid_payload, "defasagem", "out_of_range" if isinstance(defasagem, (int, float)) else "invalid_type")
 
 
 @pytest.mark.parametrize("field", INPUT_FIELDS)

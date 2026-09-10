@@ -20,7 +20,6 @@ INPUT_FIELDS: Final[tuple[str, ...]] = (
     "inde",
     "genero",
     "instituicao",
-    "pedra",
 )
 
 DERIVED_FIELDS: Final[tuple[str, ...]] = (
@@ -36,8 +35,14 @@ RISK_BANDS: Final[tuple[str, ...]] = ("Baixo", "M\u00e9dio", "Alto")
 DOMAIN_VALUES = MappingProxyType(
     {
         "genero": ("Feminino", "Masculino"),
-        "instituicao": ("Pública", "Privada"),
-        "pedra": ("Quartzo", "Ágata", "Ametista", "Topázio"),
+        "instituicao": (
+            "Pública",
+            "Privada",
+            "Privada - Programa de Apadrinhamento",
+            "Privada *Parcerias com Bolsa 100%",
+            "Privada - Pagamento por *Empresa Parceira",
+            "Concluiu o 3º EM",
+        ),
         "faixa_risco": RISK_BANDS,
     }
 )

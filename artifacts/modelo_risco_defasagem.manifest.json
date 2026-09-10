@@ -14,12 +14,11 @@
     "ipv",
     "inde",
     "genero",
-    "instituicao",
-    "pedra"
+    "instituicao"
   ],
   "target": "risco_defasagem",
-  "created_at": "2026-09-03",
-  "description": "Modelo de classificação de risco de defasagem escolar baseado em indicadores PEDE",
-  "sha256": "b2daeece3259c22002832922f9026b3029e7bba8f58586c326c2620cd5f0382c",
-  "size_bytes": 2519297
+  "created_at": "2026-09-09",
+  "description": "Modelo de classificação de risco de defasagem escolar baseado em indicadores PEDE (sem campo pedra - removido por redundância)",
+  "sha256": "3ae1aadce9e6108ba321e85471791b933a7ee88dbff944587dc05911dddd001a",
+  "size_bytes": 2503721
 }

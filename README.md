@@ -21,7 +21,7 @@ POST /api/v1/defasagem-risk-records (13 campos)
 
 | Modulo | Responsabilidade |
 |--------|-----------------|
-| `feature_transformer.py` | Transforma os 13 campos PEDE em DataFrame com 13 features |
+| `feature_transformer.py` | Transforma os 12 campos PEDE em DataFrame com 12 features |
 | `model_loader.py` | Verifica integridade do artefato (SHA-256 + tamanho) e carrega o modelo |
 | `predictor.py` | Orquestra transformacao + predicao + classificacao em faixas de risco |
 
@@ -49,23 +49,22 @@ POST /api/v1/defasagem-risk-records (13 campos)
 | Medio | 0.25 - 0.50 | Monitorar no proximo ciclo |
 | Alto | 0.50 - 1.00 | Prioridade de acompanhamento |
 
-### Campos PEDE (13 indicadores)
+### Campos PEDE (12 indicadores)
 
-| Campo | Tipo | Descricao |
-|-------|------|----------|
-| defasagem | numerico | Defasagem escolar (anos) |
-| fase_ordem | inteiro | Fase de escolaridade (1-9) |
-| idade | inteiro | Idade do aluno (6-18 anos) |
-| ano_ingresso | inteiro | Ano de ingresso na escola |
-| ida | numerico | Indicador de Desempenho Academico (0-10) |
-| ieg | numerico | Indicador de Eficiencia Escolar (0-10) |
-| iaa | numerico | Indicador de Aproveitamento Anual (0-10) |
-| ips | numerico | Indicador de Progresso Escolar (0-10) |
-| ipv | numerico | Indicador de Proficiencia em Portugues (0-10) |
-| inde | numerico | Indicador de Desempenho Escolar (0-10) |
-| genero | texto | Gênero (masculino/feminino) |
-| instituicao | texto | Tipo de instituicao (publica/privada) |
-| pedra | texto | Pedra (quartil_1/quartil_2/quartil_3/quartil_4) |
+| Campo | Tipo | Descrição | Range |
+|-------|------|----------|-------|
+| defasagem | inteiro | Defasagem escolar (fases, negativa = atrasado) | -4 a +2 |
+| fase_ordem | inteiro | Fase de escolaridade PEDE (ordem) | 0-8 (0=ALFA, 8=Universitários) |
+| idade | inteiro | Idade do aluno (anos) | 7-26 |
+| ano_ingresso | inteiro | Ano de ingresso na escola | 2016-2023 |
+| ida | numerico | Indicador de Desempenho Acadêmico (IDA) | 0-10 |
+| ieg | numerico | Indicador de Engajamento (IEG) | 0-10 |
+| iaa | numerico | Indicador de Autoavaliação (IAA) | 0-10 |
+| ips | numerico | Indicador Psicossocial (IPS) | 0-10 |
+| ipv | numerico | Indicador de Ponto de Virada (IPV) | 0-10 |
+| inde | numerico | Índice de Desenvolvimento Educacional (INDE) | 0-10 |
+| genero | texto | Gênero (masculino/feminino) | Feminino, Masculino |
+| instituicao | texto | Tipo de instituicao | Pública, Privada, Privada - Programa de Apadrinhamento, Privada *Parcerias com Bolsa 100%, Privada - Pagamento por *Empresa Parceira, Concluiu o 3º EM |
 
 ## Executar com Docker
 
@@ -120,33 +119,32 @@ psql "$env:DATABASE_URL" -f migrations/versions/script.sql
 
 - `GET /health/live` e `GET /health/ready`
 - `GET /api/v1/domains` e `GET /api/v1/domains/{field_name}`
-- `POST /api/v1/defasagem-risk-records` — aceita 13 campos PEDE, retorna 16 (com probabilidade, faixa_risco, acao_sugerida)
+- `POST /api/v1/defasagem-risk-records` — aceita 12 campos PEDE, retorna 15 (com probabilidade, faixa_risco, acao_sugerida)
 - `GET /api/v1/defasagem-risk-records` — lista todos os registros
 - `GET /api/v1/defasagem-risk-records/{id}`
 
 ### Contrato POST /api/v1/defasagem-risk-records
 
-**Request (13 campos PEDE):**
+**Request (12 campos PEDE):**
 
 ```json
 {
-  "defasagem": 1.5,
-  "fase_ordem": 3,
-  "idade": 10,
-  "ano_ingresso": 2020,
+  "defasagem": -1,
+  "fase_ordem": 2,
+  "idade": 12,
+  "ano_ingresso": 2022,
   "ida": 7.8,
   "ieg": 8.2,
   "iaa": 6.5,
   "ips": 9.1,
   "ipv": 7.3,
   "inde": 8.0,
-  "genero": "masculino",
-  "instituicao": "publica",
-  "pedra": "quartil_1"
+  "genero": "Feminino",
+  "instituicao": "Pública"
 }
 ```
 
-**Response (16 campos — probabilidade, faixa_risco, acao_sugerida calculados pelo modelo):**
+**Response (15 campos — probabilidade, faixa_risco, acao_sugerida calculados pelo modelo):**
 
 ```json
 {
@@ -164,7 +162,6 @@ psql "$env:DATABASE_URL" -f migrations/versions/script.sql
   "inde": 8.0,
   "genero": "masculino",
   "instituicao": "publica",
-  "pedra": "quartil_1",
   "probabilidade": 0.35,
   "faixa_risco": "Medio",
   "acao_sugerida": "Monitorar no proximo ciclo"

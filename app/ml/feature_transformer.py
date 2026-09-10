@@ -13,11 +13,11 @@ FEATURE_COLUMNS: list[str] = list(INPUT_FIELDS)
 
 
 class FeatureTransformer:
-    """Convert a validated API command into a single-row DataFrame with 13 raw features."""
+    """Convert a validated API command into a single-row DataFrame with 12 raw features."""
 
     def transform(self, command: Mapping[str, Any]) -> pd.DataFrame:
         row: dict[str, int | float | str] = {
-            "defasagem": float(command["defasagem"]),
+            "defasagem": int(command["defasagem"]),
             "fase_ordem": int(command["fase_ordem"]),
             "idade": int(command["idade"]),
             "ano_ingresso": int(command["ano_ingresso"]),
@@ -29,7 +29,6 @@ class FeatureTransformer:
             "inde": float(command["inde"]),
             "genero": str(command["genero"]),
             "instituicao": str(command["instituicao"]),
-            "pedra": str(command["pedra"]),
         }
 
         return pd.DataFrame([row], columns=FEATURE_COLUMNS)

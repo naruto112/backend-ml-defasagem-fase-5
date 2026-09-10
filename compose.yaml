@@ -29,6 +29,9 @@ services:
     restart: "no"
 
   api:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: defasagem-risk-api:latest
     environment: *app-env
     ports:

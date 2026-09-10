@@ -28,7 +28,7 @@ def valid_payload() -> dict[str, Any]:
     }
 
 
-INPUT_DOMAIN_VALUES = {k: v for k, v in DOMAIN_VALUES.items() if k != "obesity"}
+INPUT_DOMAIN_VALUES = {k: v for k, v in DOMAIN_VALUES.items() if k in INPUT_FIELDS}
 
 
 def _assert_error(payload: dict[str, Any], field: str, code: str) -> None:

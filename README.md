@@ -87,7 +87,7 @@ OpenAPI em `/api/openapi.json`. O PostgreSQL nao publica porta no host.
 
 ## Desenvolvimento
 
-Requer Python >=3.10 e PostgreSQL. Com `APP_ENV` e `DATABASE_URL` configurados:
+Requer Python >=3.12 e PostgreSQL. Com `APP_ENV` e `DATABASE_URL` configurados:
 
 ```powershell
 python -m venv .venv

@@ -6,10 +6,10 @@ from uuid import uuid4
 import pytest
 
 from app.services import (
-    DomainNotFoundError,
-    DomainService,
     DefasagemRiskRecordNotFoundError,
     DefasagemRiskRecordService,
+    DomainNotFoundError,
+    DomainService,
 )
 
 
@@ -57,8 +57,12 @@ class TransactionStub:
 
 
 class PredictorStub:
-    def __init__(self, result: str = "Normal_Weight", error: Exception | None = None) -> None:
-        self.result = result
+    def __init__(self, result: dict | None = None, error: Exception | None = None) -> None:
+        self.result = result or {
+            "probabilidade": 0.1,
+            "faixa_risco": "Baixo",
+            "acao_sugerida": "Sem sinal de alerta",
+        }
         self.error = error
         self.called_with = None
 
@@ -108,12 +112,20 @@ def test_record_service_predicts_and_commits() -> None:
     record = SimpleNamespace(id=uuid4())
     repository = RecordRepositoryStub(record)
     transaction = TransactionStub()
-    predictor = PredictorStub({"probabilidade": 0.75, "faixa_risco": "alto", "acao_sugerida": "Intervenção imediata"})
+    predictor = PredictorStub(
+        {"probabilidade": 0.75, "faixa_risco": "alto", "acao_sugerida": "Intervenção imediata"}
+    )
     service = DefasagemRiskRecordService(repository, transaction, predictor)  # type: ignore[arg-type]
 
     command = {"defasagem": 1.5, "idade": 10}
     assert service.create_record(command) is record
-    assert repository.added == {"defasagem": 1.5, "idade": 10, "probabilidade": 0.75, "faixa_risco": "alto", "acao_sugerida": "Intervenção imediata"}
+    assert repository.added == {
+        "defasagem": 1.5,
+        "idade": 10,
+        "probabilidade": 0.75,
+        "faixa_risco": "alto",
+        "acao_sugerida": "Intervenção imediata",
+    }
     assert predictor.called_with is command
     assert transaction.commits == 1
     assert transaction.rollbacks == 0

@@ -3,7 +3,7 @@ from __future__ import annotations
 from uuid import uuid4
 
 from app.models import DefasagemRiskRecord
-from app.repositories import DomainRepository, DefasagemRiskRecordRepository
+from app.repositories import DefasagemRiskRecordRepository, DomainRepository
 
 
 class ScalarResultStub:

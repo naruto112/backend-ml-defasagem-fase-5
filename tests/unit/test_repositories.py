@@ -52,7 +52,7 @@ def test_record_repository_adds_flushes_and_reads() -> None:
     session = SessionStub()
     repository = DefasagemRiskRecordRepository(session)
     values = {
-        "defasagem": 1.5,
+        "defasagem": 1,
         "fase_ordem": 3,
         "idade": 10,
         "ano_ingresso": 2020,
@@ -64,7 +64,6 @@ def test_record_repository_adds_flushes_and_reads() -> None:
         "inde": 8.0,
         "genero": "masculino",
         "instituicao": "publica",
-        "pedra": "quartil_1",
         "probabilidade": 0.75,
         "faixa_risco": "alto",
         "acao_sugerida": "Intervenção imediata",

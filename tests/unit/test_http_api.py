@@ -13,7 +13,7 @@ from app.domain_catalog import RECORD_FIELDS
 from app.services import DefasagemRiskRecordNotFoundError, DomainNotFoundError
 
 VALID_INPUT = {
-    "defasagem": 1.5,
+    "defasagem": 1,
     "fase_ordem": 3,
     "idade": 10,
     "ano_ingresso": 2020,
@@ -25,7 +25,6 @@ VALID_INPUT = {
     "inde": 8.0,
     "genero": "Feminino",
     "instituicao": "Pública",
-    "pedra": "Quartzo",
 }
 
 

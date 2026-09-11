@@ -18,6 +18,8 @@ CATALOG: tuple[dict[str, Any], ...] = (
         "label": "Defasagem escolar (fases, negativa = atrasado)",
         "type": "integer",
         "options": (),
+        "min_value": -100,
+        "max_value": 100,
     },
     {
         "name": "fase_ordem",
@@ -40,48 +42,64 @@ CATALOG: tuple[dict[str, Any], ...] = (
         "label": "Idade do aluno (anos)",
         "type": "integer",
         "options": (),
+        "min_value": 1,
+        "max_value": 99,
     },
     {
         "name": "ano_ingresso",
         "label": "Ano de ingresso na escola",
         "type": "integer",
         "options": (),
+        "min_value": 2016,
+        "max_value": 4000,
     },
     {
         "name": "ida",
         "label": "Indicador de Desempenho Acadêmico (IDA)",
         "type": "number",
         "options": (),
+        "min_value": 0,
+        "max_value": 100,
     },
     {
         "name": "ieg",
         "label": "Indicador de Engajamento (IEG)",
         "type": "number",
         "options": (),
+        "min_value": 0,
+        "max_value": 100,
     },
     {
         "name": "iaa",
         "label": "Indicador de Autoavaliação (IAA)",
         "type": "number",
         "options": (),
+        "min_value": 0,
+        "max_value": 100,
     },
     {
         "name": "ips",
         "label": "Indicador Psicossocial (IPS)",
         "type": "number",
         "options": (),
+        "min_value": 0,
+        "max_value": 100,
     },
     {
         "name": "ipv",
         "label": "Indicador de Ponto de Virada (IPV)",
         "type": "number",
         "options": (),
+        "min_value": 0,
+        "max_value": 100,
     },
     {
         "name": "inde",
         "label": "Índice de Desenvolvimento Educacional (INDE)",
         "type": "number",
         "options": (),
+        "min_value": 0,
+        "max_value": 100,
     },
     {
         "name": "genero",
@@ -116,14 +134,36 @@ def seed(database_url: str) -> None:
                 "display_order": field_order,
                 "required": field.get("required", True),
                 "active": True,
+                "min_value": field.get("min_value"),
+                "max_value": field.get("max_value"),
             }
             field_insert = insert(DomainField.__table__).values(**field_values)
             field_id = connection.execute(
                 field_insert.on_conflict_do_update(
                     constraint="uq_domain_field_name",
-                    set_={**field_values, "updated_at": func.now()},
+                    set_={
+                        "label": field_values["label"],
+                        "data_type": field_values["data_type"],
+                        "display_order": field_values["display_order"],
+                        "required": field_values["required"],
+                        "active": field_values["active"],
+                        "updated_at": func.now(),
+                    },
                 ).returning(DomainField.id)
             ).scalar_one()
+            
+            # Update min_value and max_value separately if they exist
+            if field_values["min_value"] is not None or field_values["max_value"] is not None:
+                update_values = {"updated_at": func.now()}
+                if field_values["min_value"] is not None:
+                    update_values["min_value"] = field_values["min_value"]
+                if field_values["max_value"] is not None:
+                    update_values["max_value"] = field_values["max_value"]
+                connection.execute(
+                    DomainField.__table__.update()
+                    .where(DomainField.id == field_id)
+                    .values(**update_values)
+                )
             for option_order, (value, label) in enumerate(field["options"], start=1):
                 option_values = {
                     "domain_field_id": field_id,

@@ -15,7 +15,7 @@ def _score_field() -> StrictNumber:
     return StrictNumber(
         required=True,
         allow_none=False,
-        validate=validate.Range(min=0, max=10, error="out_of_range"),
+        validate=validate.Range(min=0, max=100, error="out_of_range"),
         error_messages=COMMON_ERRORS,
     )
 
@@ -40,7 +40,7 @@ class DefasagemRiskRecordCreateSchema(Schema):
     defasagem = StrictInteger(
         required=True,
         allow_none=False,
-        validate=validate.Range(min=-4, max=2, error="out_of_range"),
+        validate=validate.Range(min=-100, max=100, error="out_of_range"),
         error_messages=COMMON_ERRORS,
     )
     fase_ordem = StrictInteger(
@@ -52,13 +52,13 @@ class DefasagemRiskRecordCreateSchema(Schema):
     idade = StrictInteger(
         required=True,
         allow_none=False,
-        validate=validate.Range(min=7, max=26, error="out_of_range"),
+        validate=validate.Range(min=1, max=99, error="out_of_range"),
         error_messages=COMMON_ERRORS,
     )
     ano_ingresso = StrictInteger(
         required=True,
         allow_none=False,
-        validate=validate.Range(min=2016, max=2023, error="out_of_range"),
+        validate=validate.Range(min=2016, max=4000, error="out_of_range"),
         error_messages=COMMON_ERRORS,
     )
     ida = _score_field()

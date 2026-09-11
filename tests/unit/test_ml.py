@@ -16,7 +16,7 @@ from app.ml.model_loader import ModelArtifactError, _sha256, load_model, verify_
 from app.ml.predictor import DEFAULT_RISK_BANDS, DefasagemRiskPredictor, PredictionError
 
 SAMPLE_COMMAND = {
-    "defasagem": 1.5,
+    "defasagem": 1,
     "fase_ordem": 3,
     "idade": 10,
     "ano_ingresso": 2020,
@@ -28,7 +28,6 @@ SAMPLE_COMMAND = {
     "inde": 8.0,
     "genero": "Feminino",
     "instituicao": "Pública",
-    "pedra": "Quartzo",
 }
 
 
@@ -80,11 +79,10 @@ class TestFeatureTransformer:
 
     def test_categorical_values_are_kept_raw(self):
         transformer = FeatureTransformer()
-        cmd = {**SAMPLE_COMMAND, "genero": "Masculino", "instituicao": "Privada", "pedra": "Ágata"}
+        cmd = {**SAMPLE_COMMAND, "genero": "Masculino", "instituicao": "Privada"}
         row = transformer.transform(cmd).iloc[0]
         assert row["genero"] == "Masculino"
         assert row["instituicao"] == "Privada"
-        assert row["pedra"] == "Ágata"
 
     def test_numeric_values_are_cast(self):
         transformer = FeatureTransformer()

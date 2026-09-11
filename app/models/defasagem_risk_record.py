@@ -15,16 +15,16 @@ from app.extensions import db
 class DefasagemRiskRecord(db.Model):  # type: ignore[name-defined]
     __tablename__ = "defasagem_risk_record"
     __table_args__ = (
-        CheckConstraint("defasagem >= -4 AND defasagem <= 2", name="ck_defasagem_risk_defasagem"),
+        CheckConstraint("defasagem >= -100 AND defasagem <= 100", name="ck_defasagem_risk_defasagem"),
         CheckConstraint("fase_ordem BETWEEN 0 AND 8", name="ck_defasagem_risk_fase_ordem"),
-        CheckConstraint("idade BETWEEN 7 AND 26", name="ck_defasagem_risk_idade"),
-        CheckConstraint("ano_ingresso >= 2016 AND ano_ingresso <= 2023", name="ck_defasagem_risk_ano"),
-        CheckConstraint("ida BETWEEN 0 AND 10", name="ck_defasagem_risk_ida"),
-        CheckConstraint("ieg BETWEEN 0 AND 10", name="ck_defasagem_risk_ieg"),
-        CheckConstraint("iaa BETWEEN 0 AND 10", name="ck_defasagem_risk_iaa"),
-        CheckConstraint("ips BETWEEN 0 AND 10", name="ck_defasagem_risk_ips"),
-        CheckConstraint("ipv BETWEEN 0 AND 10", name="ck_defasagem_risk_ipv"),
-        CheckConstraint("inde BETWEEN 0 AND 10", name="ck_defasagem_risk_inde"),
+        CheckConstraint("idade BETWEEN 1 AND 99", name="ck_defasagem_risk_idade"),
+        CheckConstraint("ano_ingresso >= 2016 AND ano_ingresso <= 4000", name="ck_defasagem_risk_ano"),
+        CheckConstraint("ida BETWEEN 0 AND 100", name="ck_defasagem_risk_ida"),
+        CheckConstraint("ieg BETWEEN 0 AND 100", name="ck_defasagem_risk_ieg"),
+        CheckConstraint("iaa BETWEEN 0 AND 100", name="ck_defasagem_risk_iaa"),
+        CheckConstraint("ips BETWEEN 0 AND 100", name="ck_defasagem_risk_ips"),
+        CheckConstraint("ipv BETWEEN 0 AND 100", name="ck_defasagem_risk_ipv"),
+        CheckConstraint("inde BETWEEN 0 AND 100", name="ck_defasagem_risk_inde"),
         CheckConstraint(
             "genero IN ('Feminino', 'Masculino')",
             name="ck_defasagem_risk_genero",
